@@ -6,12 +6,23 @@
   <title>野球デジタル作戦ボード PRO</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b1329; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #0b1329; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    header { background: #1e293b; padding: 8px 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-bottom: 2px solid #334155; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-    .title { font-weight: 800; font-size: 16px; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-right: 4px; }
+    /* メインナビゲーションタブ */
+    nav { background: #0f172a; border-bottom: 2px solid #1e293b; display: flex; padding: 0 10px; z-index: 20; }
+    .nav-btn { background: transparent; color: #94a3b8; border: none; padding: 12px 20px; font-size: 14px; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+    .nav-btn:hover { color: #f8fafc; }
+    .nav-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #1e293b; }
+
+    /* ページ表示コントロール */
+    .page { display: none; flex: 1; height: calc(100vh - 47px); overflow: hidden; }
+    .page.active { display: flex; }
+
+    /* 画面1：作戦ボード */
+    #board-page { flex-direction: column; width: 100%; height: 100%; position: relative; }
+    header { background: #1e293b; padding: 8px 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #334155; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
     
-    .btn { background: #334155; color: #fff; border: 1px solid #475569; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s; }
+    .btn { background: #334155; color: #fff; border: 1px solid #475569; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
     .btn:hover { background: #475569; }
     .btn.active { background: #0284c7; border-color: #38bdf8; box-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
     .btn-danger { background: #991b1b; border-color: #b91c1c; }
@@ -20,161 +31,191 @@
     .btn-success:hover { background: #22c55e; }
 
     .btn-group { display: flex; background: #0f172a; padding: 3px; border-radius: 6px; border: 1px solid #334155; gap: 2px; }
-    
     .color-picker { display: flex; align-items: center; gap: 5px; background: #0f172a; padding: 4px 8px; border-radius: 6px; border: 1px solid #334155; }
-    .color-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; }
-    .color-dot:hover { transform: scale(1.15); }
-    .color-dot.selected { border-color: #ffffff; transform: scale(1.25); box-shadow: 0 0 8px rgba(255,255,255,0.8); }
+    .color-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+    .color-dot.selected { border-color: #ffffff; transform: scale(1.2); }
 
     #field-container { flex: 1; position: relative; width: 100vw; height: 100%; display: flex; justify-content: center; align-items: center; background: #060d1f; overflow: hidden; }
     svg { width: 100%; height: 100%; max-width: 1200px; max-height: 1200px; }
 
-    /* 背番号登録モーダル */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); z-index: 100; justify-content: center; align-items: center; }
-    .modal-content { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #475569; width: 360px; color: #fff; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.6); max-height: 80vh; overflow-y: auto; }
-    .modal-content h3 { margin-bottom: 14px; font-size: 16px; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 6px; }
-    .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
-    .modal-row { display: flex; align-items: center; justify-content: space-between; background: #0f172a; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; }
-    .modal-row label { font-size: 12px; font-weight: bold; }
-    .modal-row input { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 4px 6px; border-radius: 4px; width: 50px; text-align: center; font-weight: bold; }
+    /* サイド保存パネル */
+    .side-panel { position: absolute; top: 70px; right: 15px; width: 260px; background: rgba(30, 41, 59, 0.95); padding: 12px; border-radius: 8px; border: 1px solid #475569; backdrop-filter: blur(8px); z-index: 10; max-height: 80vh; overflow-y: auto; }
+    .side-panel h4 { font-size: 13px; color: #38bdf8; margin-bottom: 8px; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+    .side-panel input, .side-panel textarea { width: 100%; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 6px; border-radius: 4px; font-size: 12px; margin-bottom: 6px; }
+
+    /* 画面2 & 3：スタメン・選手登録 */
+    .container-page { flex: 1; padding: 20px; overflow-y: auto; max-width: 1000px; margin: 0 auto; width: 100%; }
+    .card { background: #1e293b; border-radius: 10px; padding: 20px; border: 1px solid #334155; margin-bottom: 20px; }
+    .card h3 { font-size: 16px; color: #38bdf8; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th, td { padding: 10px; border-bottom: 1px solid #334155; }
+    th { color: #94a3b8; background: #0f172a; }
+    select, input[type="text"], input[type="number"] { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
   </style>
 </head>
 <body>
 
-<header>
-  <div class="title">⚾ 作戦ボード PRO</div>
+<!-- メインナビゲーション -->
+<nav>
+  <button class="nav-btn active" onclick="switchPage('board-page', this)">⚾ 作戦ボード</button>
+  <button class="nav-btn" onclick="switchPage('lineup-page', this)">📋 スタメン設定</button>
+  <button class="nav-btn" onclick="switchPage('roster-page', this)">👤 選手登録</button>
+</nav>
 
-  <!-- ツール選択 -->
-  <div class="btn-group">
-    <button class="btn active" id="tool-select" onclick="setTool('select')">✋ 移動</button>
-    <button class="btn" id="tool-pen" onclick="setTool('pen')">✏️ ペン</button>
-    <button class="btn" id="tool-laser" onclick="setTool('laser')">🚨 レーザー</button>
-    <button class="btn" id="tool-eraser" onclick="setTool('eraser')">🧹 消しゴム</button>
-  </div>
+<!-- 画面1：作戦ボード -->
+<div class="page active" id="board-page">
+  <header>
+    <div class="btn-group">
+      <button class="btn active" id="tool-select" onclick="setTool('select')">✋ 移動</button>
+      <button class="btn" id="tool-pen" onclick="setTool('pen')">✏️ ペン</button>
+      <button class="btn" id="tool-laser" onclick="setTool('laser')">🚨 レーザー</button>
+      <button class="btn" id="tool-eraser" onclick="setTool('eraser')">🧹 消しゴム</button>
+    </div>
 
-  <!-- 豊富カラーパレット -->
-  <div class="color-picker" id="color-palette">
-    <div class="color-dot selected" style="background:#ffffff" onclick="setColor('#ffffff', this)"></div>
-    <div class="color-dot" style="background:#ef4444" onclick="setColor('#ef4444', this)"></div>
-    <div class="color-dot" style="background:#3b82f6" onclick="setColor('#3b82f6', this)"></div>
-    <div class="color-dot" style="background:#eab308" onclick="setColor('#eab308', this)"></div>
-    <div class="color-dot" style="background:#22c55e" onclick="setColor('#22c55e', this)"></div>
-    <div class="color-dot" style="background:#a855f7" onclick="setColor('#a855f7', this)"></div>
-    <div class="color-dot" style="background:#ec4899" onclick="setColor('#ec4899', this)"></div>
-  </div>
+    <div class="color-picker">
+      <div class="color-dot selected" style="background:#ffffff" onclick="setColor('#ffffff', this)"></div>
+      <div class="color-dot" style="background:#ef4444" onclick="setColor('#ef4444', this)"></div>
+      <div class="color-dot" style="background:#3b82f6" onclick="setColor('#3b82f6', this)"></div>
+      <div class="color-dot" style="background:#eab308" onclick="setColor('#eab308', this)"></div>
+      <div class="color-dot" style="background:#22c55e" onclick="setColor('#22c55e', this)"></div>
+    </div>
 
-  <!-- 走者コントロール -->
-  <div class="btn-group">
-    <button class="btn" onclick="addRunner()">🏃 走者追加</button>
-    <button class="btn" onclick="removeRunner()">❌ 走者削除</button>
-  </div>
+    <div class="btn-group">
+      <button class="btn" onclick="addRunner()">🏃 走者追加</button>
+      <button class="btn" onclick="removeRunner()">❌ 走者削除</button>
+    </div>
 
-  <!-- 表示・背番号設定 -->
-  <button class="btn" id="btn-toggle-label" onclick="toggleLabelMode()">🔢 表示: ポジション名</button>
-  <button class="btn" onclick="openNumberModal()">⚙️ 背番号登録</button>
+    <button class="btn" id="btn-rec" onclick="toggleRecord()" style="background:#15803d">🎥 録画開始</button>
+    <button class="btn" id="btn-play" onclick="playRecord()" style="background:#d97706">▶ 再生</button>
 
-  <!-- クリア・出力 -->
-  <button class="btn btn-success" onclick="exportPNG()">📷 PNG保存</button>
-  <button class="btn btn-danger" onclick="resetAll()">🔄 リセット</button>
-</header>
+    <button class="btn" id="btn-toggle-label" onclick="toggleLabelMode()">🔢 表示: ポジション</button>
+    <button class="btn btn-danger" onclick="resetBoard()">🔄 盤面リセット</button>
+  </header>
 
-<div id="field-container">
-  <svg id="svgField" viewBox="0 0 1200 1200">
-    <defs>
-      <!-- 芝生パターン（グラデーション交差） -->
-      <pattern id="grass-stripe" width="1200" height="100" patternUnits="userSpaceOnUse">
-        <rect x="0" y="0" width="1200" height="50" fill="#15803d"/>
-        <rect x="0" y="50" width="1200" height="50" fill="#166534"/>
-      </pattern>
+  <div id="field-container">
+    <svg id="svgField" viewBox="0 0 1200 1200">
+      <defs>
+        <pattern id="grass-stripe" width="1200" height="100" patternUnits="userSpaceOnUse">
+          <rect x="0" y="0" width="1200" height="50" fill="#15803d"/>
+          <rect x="0" y="50" width="1200" height="50" fill="#166534"/>
+        </pattern>
+        <filter id="laser-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- 球場グラウンド描画 -->
+      <path d="M 100 1020 L 100 500 A 700 700 0 0 1 1100 500 L 1100 1020 Z" fill="url(#grass-stripe)" />
+      <path d="M 85 1030 L 85 480 A 725 725 0 0 1 1115 480 L 1115 1030" fill="none" stroke="#334155" stroke-width="14" />
+      <path d="M 90 1030 L 90 485 A 720 720 0 0 1 1110 485 L 1110 1030" fill="none" stroke="#f59e0b" stroke-width="4" />
+      <path d="M 600 1020 L 260 680 A 480 480 0 0 1 940 680 Z" fill="#b45309" />
+      <polygon points="600,990 840,750 600,510 360,750" fill="url(#grass-stripe)" />
+      <line x1="600" y1="1020" x2="90" y2="485" stroke="#ffffff" stroke-width="4" />
+      <line x1="600" y1="1020" x2="1110" y2="485" stroke="#ffffff" stroke-width="4" />
+      <circle cx="600" cy="750" r="36" fill="#b45309" />
+      <rect x="588" y="744" width="24" height="10" fill="#ffffff" rx="2" />
+      <polygon points="600,1010 615,1025 615,1040 585,1040 585,1025" fill="#ffffff" />
+      <rect x="828" y="738" width="24" height="24" fill="#ffffff" transform="rotate(45 840 750)" />
+      <rect x="588" y="498" width="24" height="24" fill="#ffffff" transform="rotate(45 600 510)" />
+      <rect x="348" y="738" width="24" height="24" fill="#ffffff" transform="rotate(45 360 750)" />
+
+      <g id="linesLayer"></g>
+      <g id="objectsLayer"></g>
+    </svg>
+
+    <!-- 戦術メモ＆保存パネル -->
+    <div class="side-panel">
+      <h4>💾 戦術の保存・メモ</h4>
+      <input type="text" id="save-title" placeholder="タイトル（例：満塁バント警戒）">
+      <textarea id="save-memo" rows="3" placeholder="状況メモ（例：ランナーの動きに注意...）"></textarea>
+      <button class="btn btn-success" style="width:100%; justify-content:center; margin-bottom:10px;" onclick="savePlay()">保存する</button>
       
-      <!-- レーザー用グローフィルター -->
-      <filter id="laser-glow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-        <feMerge>
-          <feMergeNode in="coloredBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-    </defs>
-
-    <!-- 球場グラウンド描画 -->
-    <!-- 外野背景芝生 -->
-    <path d="M 100 1020 L 100 500 A 700 700 0 0 1 1100 500 L 1100 1020 Z" fill="url(#grass-stripe)" />
-    <!-- 巨大外野フェンス -->
-    <path d="M 85 1030 L 85 480 A 725 725 0 0 1 1115 480 L 1115 1030" fill="none" stroke="#334155" stroke-width="14" />
-    <path d="M 90 1030 L 90 485 A 720 720 0 0 1 1110 485 L 1110 1030" fill="none" stroke="#f59e0b" stroke-width="4" />
-
-    <!-- 内野の土 (大型) -->
-    <path d="M 600 1020 L 260 680 A 480 480 0 0 1 940 680 Z" fill="#b45309" />
-    <!-- 内野ダイヤモンド芝生 -->
-    <polygon points="600,990 840,750 600,510 360,750" fill="url(#grass-stripe)" />
-
-    <!-- ファールライン & ポール -->
-    <line x1="600" y1="1020" x2="90" y2="485" stroke="#ffffff" stroke-width="4" />
-    <line x1="600" y1="1020" x2="1110" y2="485" stroke="#ffffff" stroke-width="4" />
-    <circle cx="90" cy="485" r="8" fill="#f59e0b" />
-    <circle cx="1110" cy="485" r="8" fill="#f59e0b" />
-
-    <!-- マウンド & ピッチャープレート -->
-    <circle cx="600" cy="750" r="36" fill="#b45309" stroke="#92400e" stroke-width="2" />
-    <rect x="588" y="744" width="24" height="10" fill="#ffffff" rx="2" />
-
-    <!-- バッターボックス & ホームベース -->
-    <rect x="540" y="1000" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
-    <rect x="630" y="1000" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
-    <polygon points="600,1010 615,1025 615,1040 585,1040 585,1025" fill="#ffffff" /> <!-- ホームベース -->
-
-    <!-- 各塁ベース -->
-    <rect x="828" y="738" width="24" height="24" fill="#ffffff" transform="rotate(45 840 750)" /> <!-- 1塁 -->
-    <rect x="588" y="498" width="24" height="24" fill="#ffffff" transform="rotate(45 600 510)" /> <!-- 2塁 -->
-    <rect x="348" y="738" width="24" height="24" fill="#ffffff" transform="rotate(45 360 750)" /> <!-- 3塁 -->
-
-    <!-- 描画レイヤー（ペン・レーザー） -->
-    <g id="linesLayer"></g>
-    <!-- オブジェクトレイヤー（大コマ選手・リアルボール） -->
-    <g id="objectsLayer"></g>
-  </svg>
+      <h4>📂 保存一覧</h4>
+      <div id="saved-list"></div>
+    </div>
+  </div>
 </div>
 
-<!-- 背番号登録モーダル -->
-<div class="modal" id="numberModal">
-  <div class="modal-content">
-    <h3>⚙️ 選手 背番号登録</h3>
-    <div class="modal-grid" id="modalGrid"></div>
-    <button class="btn btn-success" style="width:100%; justify-content:center;" onclick="closeNumberModal()">保存して閉じる</button>
+<!-- 画面2：スタメン設定 -->
+<div class="page" id="lineup-page">
+  <div class="container-page">
+    <div class="card">
+      <h3>📋 スターティングメンバー設定</h3>
+      <table>
+        <thead>
+          <tr><th>打順</th><th>ポジション</th><th>選手選択</th></tr>
+        </thead>
+        <tbody id="lineup-table-body"></tbody>
+      </table>
+      <button class="btn btn-success" style="margin-top:15px;" onclick="saveLineup()">スタメン保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 画面3：選手登録 -->
+<div class="page" id="roster-page">
+  <div class="container-page">
+    <div class="card">
+      <h3>👤 選手登録・背番号編集</h3>
+      <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <input type="text" id="new-p-name" placeholder="選手名 (例: 山田)" style="flex:2;">
+        <input type="text" id="new-p-num" placeholder="背番号 (例: 10)" style="flex:1;">
+        <button class="btn btn-success" onclick="addRosterPlayer()">登録</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>背番号</th><th>選手名</th><th>操作</th></tr>
+        </thead>
+        <tbody id="roster-table-body"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <script>
-  // 初期守備位置 & 打者
+  // 初期位置（打者なし、守備9人）
   const defaultPlayers = [
-    { id: 'P', label: '投', num: '1', x: 600, y: 780, color: '#ef4444' },
-    { id: 'C', label: '捕', num: '2', x: 600, y: 1070, color: '#ef4444' },
-    { id: '1B', label: '一', num: '3', x: 870, y: 710, color: '#ef4444' },
-    { id: '2B', label: '二', num: '4', x: 730, y: 590, color: '#ef4444' },
-    { id: '3B', label: '三', num: '5', x: 330, y: 710, color: '#ef4444' },
-    { id: 'SS', label: '遊', num: '6', x: 470, y: 590, color: '#ef4444' },
-    { id: 'LF', label: '左', num: '7', x: 280, y: 380, color: '#ef4444' },
-    { id: 'CF', label: '中', num: '8', x: 600, y: 300, color: '#ef4444' },
-    { id: 'RF', label: '右', num: '9', x: 920, y: 380, color: '#ef4444' },
-    { id: 'B', label: '打', num: '10', x: 530, y: 1020, color: '#3b82f6' },
+    { id: 'P', label: '投', num: '1', name: '', x: 600, y: 780, color: '#ef4444' },
+    { id: 'C', label: '捕', num: '2', name: '', x: 600, y: 1070, color: '#ef4444' },
+    { id: '1B', label: '一', num: '3', name: '', x: 870, y: 710, color: '#ef4444' },
+    { id: '2B', label: '二', num: '4', name: '', x: 730, y: 590, color: '#ef4444' },
+    { id: '3B', label: '三', num: '5', name: '', x: 330, y: 710, color: '#ef4444' },
+    { id: 'SS', label: '遊', num: '6', name: '', x: 470, y: 590, color: '#ef4444' },
+    { id: 'LF', label: '左', num: '7', name: '', x: 280, y: 380, color: '#ef4444' },
+    { id: 'CF', label: '中', num: '8', name: '', x: 600, y: 300, color: '#ef4444' },
+    { id: 'RF', label: '右', num: '9', name: '', x: 920, y: 380, color: '#ef4444' },
   ];
 
   let players = JSON.parse(JSON.stringify(defaultPlayers));
-  let runners = []; // 動的走者（最大3人）
+  let runners = [];
   let ball = { x: 600, y: 800 };
   
   let currentTool = 'select';
   let currentColor = '#ffffff';
-  let labelMode = 'label';
+  let labelMode = 'label'; // 'label', 'num', 'name'
   let lines = [];
   let currentLine = null;
-  let isDragging = false;
+  
+  let isDraggingObj = false;
+  let isDrawingLine = false;
   let dragTarget = null;
+
+  // 録画用
+  let isRecording = false;
+  let recordedFrames = [];
 
   const svg = document.getElementById('svgField');
   const linesLayer = document.getElementById('linesLayer');
   const objectsLayer = document.getElementById('objectsLayer');
+
+  // --- タブ切替 ---
+  function switchPage(pageId, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    btn.classList.add('active');
+  }
 
   function getSVGPoint(e) {
     const rect = svg.getBoundingClientRect();
@@ -186,35 +227,37 @@
     };
   }
 
-  // 画面描画 (選手コマ & リアルボール)
+  // --- 作戦ボード描画 ---
   function renderObjects() {
     objectsLayer.innerHTML = '';
 
-    // リアル野球ボール描画 (赤縫い目付き)
+    // ボール
     const ballG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     ballG.innerHTML = `
       <circle cx="${ball.x}" cy="${ball.y}" r="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" style="cursor:grab; filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.6));"/>
       <path d="M ${ball.x-10} ${ball.y-10} A 12 12 0 0 1 ${ball.x-10} ${ball.y+10}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,3"/>
       <path d="M ${ball.x+10} ${ball.y-10} A 12 12 0 0 0 ${ball.x+10} ${ball.y+10}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,3"/>
     `;
-    ballG.onmousedown = ballG.ontouchstart = (e) => startDrag(e, 'ball');
+    ballG.onmousedown = ballG.ontouchstart = (e) => { e.stopPropagation(); startObjDrag('ball'); };
     objectsLayer.appendChild(ballG);
 
-    // 全選手（守備・打者・追加走者）描画 (大きめサイズ: 半径30px)
+    // 選手
     const allPlayers = [...players, ...runners];
     allPlayers.forEach(p => {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      const textVis = labelMode === 'label' ? p.label : p.num;
+      let textVis = p.label;
+      if (labelMode === 'num') textVis = p.num || p.label;
+      if (labelMode === 'name') textVis = p.name || p.label;
+
       g.innerHTML = `
         <circle cx="${p.x}" cy="${p.y}" r="30" fill="${p.color}" stroke="#ffffff" stroke-width="3.5" style="cursor:grab; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));"/>
-        <text x="${p.x}" y="${p.y + 9}" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="900" style="pointer-events:none; font-family:sans-serif;">${textVis}</text>
+        <text x="${p.x}" y="${p.y + 8}" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="900" style="pointer-events:none; font-family:sans-serif;">${textVis}</text>
       `;
-      g.onmousedown = g.ontouchstart = (e) => startDrag(e, p.id);
+      g.onmousedown = g.ontouchstart = (e) => { e.stopPropagation(); startObjDrag(p.id); };
       objectsLayer.appendChild(g);
     });
   }
 
-  // 線・レーザー描画
   function renderLines() {
     linesLayer.innerHTML = '';
     const now = Date.now();
@@ -229,26 +272,22 @@
       path.setAttribute('stroke-width', l.isLaser ? '4' : '3');
       path.setAttribute('fill', 'none');
       path.setAttribute('stroke-linecap', 'round');
-      path.setAttribute('stroke-linejoin', 'round');
-      if (l.isLaser) {
-        path.setAttribute('filter', 'url(#laser-glow)');
-        path.setAttribute('opacity', '0.9');
-      }
+      if (l.isLaser) path.setAttribute('filter', 'url(#laser-glow)');
       linesLayer.appendChild(path);
     });
   }
 
-  // ドラッグ・操作ロジック
-  function startDrag(e, target) {
-    if (currentTool !== 'select') return;
-    isDragging = true;
-    dragTarget = target;
+  // ペンモードでも選手クリックで優先移動
+  function startObjDrag(targetId) {
+    isDraggingObj = true;
+    dragTarget = targetId;
   }
 
   svg.onmousedown = svg.ontouchstart = (e) => {
-    isDragging = true;
+    if (isDraggingObj) return;
     const pt = getSVGPoint(e);
     if (currentTool === 'pen' || currentTool === 'laser') {
+      isDrawingLine = true;
       currentLine = {
         color: currentTool === 'laser' ? '#ff0033' : currentColor,
         isLaser: currentTool === 'laser',
@@ -260,121 +299,127 @@
   };
 
   svg.onmousemove = svg.ontouchmove = (e) => {
-    if (!isDragging) return;
     const pt = getSVGPoint(e);
 
-    if (currentTool === 'select') {
-      if (dragTarget === 'ball') {
-        ball = pt;
-      } else if (dragTarget) {
+    if (isDraggingObj) {
+      if (dragTarget === 'ball') ball = pt;
+      else {
         const p = [...players, ...runners].find(x => x.id === dragTarget);
         if (p) { p.x = pt.x; p.y = pt.y; }
       }
       renderObjects();
-    } else if (currentTool === 'pen' || currentTool === 'laser') {
+      recordFrameIfNeeded();
+    } else if (isDrawingLine) {
       if (currentLine) {
         currentLine.points.push(pt);
         renderLines();
       }
-    } else if (currentTool === 'eraser') {
-      lines = lines.filter(l => !l.points.some(p => Math.hypot(p.x - pt.x, p.y - pt.y) < 18));
+    } else if (currentTool === 'eraser' && (e.buttons === 1 || e.touches)) {
+      lines = lines.filter(l => !l.points.some(p => Math.hypot(p.x - pt.x, p.y - pt.y) < 20));
       renderLines();
     }
   };
 
   svg.onmouseup = svg.ontouchend = () => {
-    isDragging = false;
+    isDraggingObj = false;
+    isDrawingLine = false;
     dragTarget = null;
     currentLine = null;
   };
 
-  // 走者追加（最大3人）
+  // --- 走者追加・削除 ---
   function addRunner() {
     if (runners.length >= 3) return;
     const idx = runners.length + 1;
     const pos = idx === 1 ? { x: 860, y: 770 } : idx === 2 ? { x: 600, y: 460 } : { x: 340, y: 770 };
-    runners.push({
-      id: `R${idx}`,
-      label: `走${idx}`,
-      num: `R${idx}`,
-      x: pos.x,
-      y: pos.y,
-      color: '#eab308'
-    });
+    runners.push({ id: `R${idx}`, label: `走${idx}`, num: `R${idx}`, name: `走者${idx}`, x: pos.x, y: pos.y, color: '#eab308' });
     renderObjects();
   }
+  function removeRunner() { runners.pop(); renderObjects(); }
 
-  // 走者削除
-  function removeRunner() {
-    if (runners.length > 0) {
-      runners.pop();
-      renderObjects();
+  // --- 録画＆再生 ---
+  function toggleRecord() {
+    isRecording = !isRecording;
+    const btn = document.getElementById('btn-rec');
+    if (isRecording) {
+      recordedFrames = [];
+      btn.innerText = '⏹ 録画停止';
+      btn.style.background = '#dc2626';
+    } else {
+      btn.innerText = '🎥 録画開始';
+      btn.style.background = '#15803d';
     }
   }
 
-  // ツール変更
-  function setTool(tool) {
-    currentTool = tool;
-    document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`tool-${tool}`).classList.add('active');
+  function recordFrameIfNeeded() {
+    if (isRecording) {
+      recordedFrames.push({
+        players: JSON.parse(JSON.stringify(players)),
+        runners: JSON.parse(JSON.stringify(runners)),
+        ball: { ...ball }
+      });
+    }
   }
 
-  // カラー選択
-  function setColor(color, el) {
-    currentColor = color;
-    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
-    el.classList.add('selected');
+  function playRecord() {
+    if (recordedFrames.length === 0) return;
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i >= recordedFrames.length) clearInterval(timer);
+      else {
+        players = recordedFrames[i].players;
+        runners = recordedFrames[i].runners;
+        ball = recordedFrames[i].ball;
+        renderObjects();
+        i++;
+      }
+    }, 40);
   }
 
-  // 表示モード切替
-  function toggleLabelMode() {
-    labelMode = labelMode === 'label' ? 'num' : 'label';
-    document.getElementById('btn-toggle-label').innerText = labelMode === 'label' ? '🔢 表示: ポジション名' : '🔢 表示: 背番号';
-    renderObjects();
+  // --- 戦術保存（メモ付き） ---
+  function savePlay() {
+    const title = document.getElementById('save-title').value || '無題の戦術';
+    const memo = document.getElementById('save-memo').value || '';
+    const saves = JSON.parse(localStorage.getItem('baseball_saved_plays') || '[]');
+    
+    saves.push({ id: Date.now(), title, memo, players, runners, ball, lines });
+    localStorage.setItem('baseball_saved_plays', JSON.stringify(saves));
+    
+    document.getElementById('save-title').value = '';
+    document.getElementById('save-memo').value = '';
+    loadSavedPlays();
   }
 
-  // 背番号登録モーダル
-  function openNumberModal() {
-    const grid = document.getElementById('modalGrid');
-    grid.innerHTML = '';
-    [...players].forEach(p => {
-      const row = document.createElement('div');
-      row.className = 'modal-row';
-      row.innerHTML = `<label>${p.label}:</label><input type="text" id="input-num-${p.id}" value="${p.num}" maxLength="3"/>`;
-      grid.appendChild(row);
+  function loadSavedPlays() {
+    const saves = JSON.parse(localStorage.getItem('baseball_saved_plays') || '[]');
+    const container = document.getElementById('saved-list');
+    container.innerHTML = '';
+    saves.forEach(s => {
+      const item = document.createElement('div');
+      item.style.cssText = 'background:#0f172a; padding:8px; border-radius:6px; margin-bottom:6px; border:1px solid #334155; cursor:pointer; font-size:12px;';
+      item.innerHTML = `<b style="color:#38bdf8;">${s.title}</b><p style="color:#94a3b8; font-size:11px; margin-top:2px;">${s.memo}</p>`;
+      item.onclick = () => {
+        players = s.players; runners = s.runners || []; ball = s.ball; lines = s.lines || [];
+        renderObjects(); renderLines();
+      };
+      container.appendChild(item);
     });
-    document.getElementById('numberModal').style.display = 'flex';
   }
 
-  function closeNumberModal() {
-    players.forEach(p => {
-      const input = document.getElementById(`input-num-${p.id}`);
-      if (input) p.num = input.value;
-    });
-    document.getElementById('numberModal').style.display = 'none';
-    renderObjects();
-  }
-
-  // PNG画像保存
-  function exportPNG() {
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement('canvas');
-    canvas.width = 1200; canvas.height = 1200;
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0);
-      const a = document.createElement('a');
-      a.download = 'baseball-strategy.png';
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
-  }
-
-  // リセット
-  function resetAll() {
+  // --- リセット（背番号保持） ---
+  function resetBoard() {
+    // 位置のみリセットし、num/nameは保持
+    const currentMap = {};
+    players.forEach(p => currentMap[p.id] = { num: p.num, name: p.name });
+    
     players = JSON.parse(JSON.stringify(defaultPlayers));
+    players.forEach(p => {
+      if (currentMap[p.id]) {
+        p.num = currentMap[p.id].num;
+        p.name = currentMap[p.id].name;
+      }
+    });
+
     runners = [];
     ball = { x: 600, y: 800 };
     lines = [];
@@ -382,11 +427,92 @@
     renderLines();
   }
 
-  // レーザータイマー監視
-  setInterval(renderLines, 80);
+  // --- ツール＆表示設定 ---
+  function setTool(t) {
+    currentTool = t;
+    document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tool-${t}`).classList.add('active');
+  }
+  function setColor(c, el) {
+    currentColor = c;
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  function toggleLabelMode() {
+    labelMode = labelMode === 'label' ? 'num' : labelMode === 'num' ? 'name' : 'label';
+    document.getElementById('btn-toggle-label').innerText = labelMode === 'label' ? '🔢 表示: ポジション' : labelMode === 'num' ? '🔢 表示: 背番号' : '🔢 表示: 選手名';
+    renderObjects();
+  }
 
-  // 初回描画
+  // --- 選手登録・スタメン連携 (localStorage) ---
+  function getRoster() { return JSON.parse(localStorage.getItem('baseball_roster') || '[]'); }
+
+  function addRosterPlayer() {
+    const name = document.getElementById('new-p-name').value;
+    const num = document.getElementById('new-p-num').value;
+    if (!name || !num) return;
+    const roster = getRoster();
+    roster.push({ id: Date.now(), name, num });
+    localStorage.setItem('baseball_roster', JSON.stringify(roster));
+    document.getElementById('new-p-name').value = '';
+    document.getElementById('new-p-num').value = '';
+    renderRoster(); renderLineupTable();
+  }
+
+  function renderRoster() {
+    const roster = getRoster();
+    const tbody = document.getElementById('roster-table-body');
+    tbody.innerHTML = '';
+    roster.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>#${r.num}</td><td>${r.name}</td><td><button class="btn btn-danger" onclick="deleteRoster(${r.id})">削除</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function deleteRoster(id) {
+    const roster = getRoster().filter(r => r.id !== id);
+    localStorage.setItem('baseball_roster', JSON.stringify(roster));
+    renderRoster(); renderLineupTable();
+  }
+
+  function renderLineupTable() {
+    const roster = getRoster();
+    const tbody = document.getElementById('lineup-table-body');
+    tbody.innerHTML = '';
+    const posList = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
+
+    posList.forEach((pos, idx) => {
+      const tr = document.createElement('tr');
+      let options = `<option value="">未選択</option>`;
+      roster.forEach(r => { options += `<option value="${r.id}">#${r.num} ${r.name}</option>`; });
+      tr.innerHTML = `<td>${idx+1}番</td><td>${pos}</td><td><select id="lineup-pos-${pos}">${options}</select></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function saveLineup() {
+    const roster = getRoster();
+    const posList = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF'];
+    
+    posList.forEach(pos => {
+      const val = document.getElementById(`lineup-pos-${pos}`).value;
+      const playerObj = players.find(p => p.id === pos);
+      if (val && playerObj) {
+        const found = roster.find(r => r.id == val);
+        if (found) { playerObj.num = found.num; playerObj.name = found.name; }
+      }
+    });
+    alert('スタメン情報を作戦ボードに適用しました！');
+    renderObjects();
+  }
+
+  // 初期化実行
+  setInterval(renderLines, 80);
   renderObjects();
+  loadSavedPlays();
+  renderRoster();
+  renderLineupTable();
 </script>
 </body>
 </html>
