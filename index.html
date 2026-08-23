@@ -1,33 +1,1137 @@
-function exportPNG() {
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>野球デジタル作戦ボード PRO for iPad</title>
+  <style>
+    /* --- 基本スタイル & Apple Glassmorphic テーマ --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      background: #090d16;
+      color: #f8fafc;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* メインタブバー */
+    nav {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      padding: 0 16px;
+      z-index: 30;
+      height: 52px;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      background: transparent;
+      color: #94a3b8;
+      border: none;
+      padding: 0 20px;
+      height: 40px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-btn:hover { color: #f8fafc; background: rgba(255,255,255,0.05); }
+    .nav-btn.active { color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); }
+
+    /* ページ構造 */
+    .page { display: none; flex: 1; height: calc(100vh - 52px); flex-direction: column; overflow: hidden; position: relative; }
+    .page.active { display: flex; }
+
+    /* iPad最適化 48px最小タップサイズヘッダー */
+    header {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 8px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 20;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+
+    /* iPadに最適な48px以上のタッチターゲット */
+    .btn {
+      background: rgba(30, 41, 59, 0.8);
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      min-height: 48px;
+      min-width: 48px;
+      padding: 0 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .btn:active { transform: scale(0.96); opacity: 0.8; }
+    .btn.active { background: #0284c7; border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
+    .btn-danger { background: rgba(153, 27, 27, 0.8); border-color: rgba(239, 68, 68, 0.4); }
+    .btn-success { background: rgba(22, 101, 52, 0.8); border-color: rgba(34, 197, 94, 0.4); }
+    .btn-recording { background: #dc2626; border-color: #f87171; animation: pulse 1.5s infinite; }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    .header-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .group-label {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: bold;
+      padding: 0 6px;
+      text-transform: uppercase;
+    }
+
+    .color-picker { display: flex; align-items: center; gap: 8px; padding: 0 6px; }
+    .color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
+    .color-dot.selected { border-color: #ffffff; transform: scale(1.25); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+
+    /* 画面右上 常時表示 スコアボード (描画ボタンとの重なりを防ぐため右上に移動) */
+    .scoreboard-overlay {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      left: auto;
+      z-index: 25;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 10px 14px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .score-box { display: flex; flex-direction: column; align-items: center; }
+    .score-title { font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 2px; }
+    .score-val { font-size: 20px; font-weight: 800; color: #38bdf8; cursor: pointer; }
+
+    .bso-container { display: flex; flex-direction: column; gap: 3px; }
+    .bso-row { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: bold; }
+    .bso-label { width: 12px; }
+    .bso-dots { display: flex; gap: 3px; }
+    .bso-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
+    .bso-dot.b-active { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+    .bso-dot.s-active { background: #eab308; box-shadow: 0 0 6px #eab308; }
+    .bso-dot.o-active { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+
+    /* グラウンド表示とSVGズーム対応コンテナ */
+    #field-container {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #040914;
+      overflow: hidden;
+      touch-action: none;
+    }
+    svg { width: 100%; height: 100%; display: block; transform-origin: 0 0; }
+
+    /* 画面下部シフト選択 & ツール切り替えバー */
+    .field-bottom-bar {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /* ズームインジケーター */
+    .zoom-indicator {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 25;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 12px;
+      font-weight: bold;
+      color: #94a3b8;
+    }
+
+    /* iPad用スライド式 Bottom Sheet（下部パネル） */
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70vh;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 24px 24px 0 0;
+      z-index: 100;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+      padding: 0 20px 20px 20px;
+    }
+    .bottom-sheet.open { transform: translateY(0); }
+    .sheet-handle {
+      width: 48px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+      margin: 12px auto 16px auto;
+      cursor: pointer;
+    }
+    .sheet-content { flex: 1; overflow-y: auto; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+
+    /* 作戦ライブラリ カードUI */
+    .library-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      padding-top: 10px;
+    }
+    .play-card {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .play-card:hover { transform: translateY(-4px); border-color: #38bdf8; }
+    .play-card img { width: 100%; height: 120px; object-fit: cover; background: #040914; }
+    .play-card-body { padding: 10px; }
+    .play-card-title { font-size: 14px; font-weight: bold; color: #f8fafc; margin-bottom: 4px; }
+    .play-card-meta { font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
+    .play-card-fav { position: absolute; top: 8px; right: 8px; font-size: 18px; color: #eab308; }
+
+    /* サブページ */
+    .container-page { flex: 1; padding: 24px; overflow-y: auto; max-width: 1100px; margin: 0 auto; width: 100%; }
+    .card {
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(16px);
+      border-radius: 18px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+    }
+    .card h3 { font-size: 16px; color: #38bdf8; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th, td { padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+    th { color: #94a3b8; background: rgba(15, 23, 42, 0.4); }
+    select, input[type="text"] {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      height: 40px;
+    }
+
+    /* 印刷用テンプレート */
+    @media print {
+      body * { visibility: hidden; }
+      #pdf-order-sheet, #pdf-order-sheet * { visibility: visible; }
+      #pdf-order-sheet { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; color: #000; background: #fff; }
+      .order-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+      .order-table th, .order-table td { border: 2px solid #000; padding: 8px; text-align: center; font-size: 15px; color: #000; }
+      .order-table th { background: #f0f0f0; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <button class="nav-btn active" onclick="switchPage('board-page', this)">⚾ 作戦ボード</button>
+  <button class="nav-btn" onclick="switchPage('lineup-page', this)">📋 スタメン・継投</button>
+  <button class="nav-btn" onclick="switchPage('roster-page', this)">👤 選手登録・管理</button>
+</nav>
+
+<!-- 画面1：作戦ボード -->
+<div class="page active" id="board-page">
+  <header>
+    <!-- 1. 描画グループ -->
+    <div class="header-group">
+      <span class="group-label">描画</span>
+      <button class="btn active" id="tool-select" onclick="setTool('select')" title="移動（指操作）">✋</button>
+      <button class="btn" id="tool-pen" onclick="setTool('pen')" title="ペン（Apple Pencil）">✏️</button>
+      <button class="btn" id="tool-laser" onclick="setTool('laser')" title="レーザーポインター">🚨</button>
+      <button class="btn" id="tool-eraser" onclick="setTool('eraser')" title="消しゴム">🧹</button>
+      
+      <div class="color-picker">
+        <div class="color-dot selected" style="background:#ffffff" onclick="setColor('#ffffff', this)"></div>
+        <div class="color-dot" style="background:#ef4444" onclick="setColor('#ef4444', this)"></div>
+        <div class="color-dot" style="background:#3b82f6" onclick="setColor('#3b82f6', this)"></div>
+        <div class="color-dot" style="background:#eab308" onclick="setColor('#eab308', this)"></div>
+        <div class="color-dot" style="background:#22c55e" onclick="setColor('#22c55e', this)"></div>
+      </div>
+      
+      <select id="stroke-width-select" onchange="setStrokeWidth(this.value)" style="height:40px;">
+        <option value="3">細線</option>
+        <option value="6" selected>標準</option>
+        <option value="10">太線</option>
+      </select>
+    </div>
+
+    <!-- 2. 選手グループ -->
+    <div class="header-group">
+      <span class="group-label">選手</span>
+      <button class="btn" onclick="addRunner()">🏃 走者+</button>
+      <button class="btn" onclick="removeRunner()">❌ 走者-</button>
+      <button class="btn" id="btn-toggle-label" onclick="toggleLabelMode()">🔢 ポジション</button>
+    </div>
+
+    <!-- 3. 試合 & 管理グループ -->
+    <div class="header-group">
+      <span class="group-label">試合</span>
+      <button class="btn btn-danger" id="btn-record" onclick="toggleRecord()">🎥 録画</button>
+      <button class="btn" onclick="undo()" title="Undo (3本指スワイプ)">↩️</button>
+      <button class="btn" onclick="redo()" title="Redo">↪️</button>
+      <button class="btn btn-success" onclick="toggleBottomSheet()" title="保存・ライブラリ">💾 保存 / 読込</button>
+      <button class="btn btn-danger" onclick="resetBoard()">🔄</button>
+    </div>
+  </header>
+
+  <!-- 右上常時表示 スコアボード -->
+  <div class="scoreboard-overlay">
+    <div class="score-box">
+      <span class="score-title">イニング</span>
+      <span class="score-val" id="disp-inning" onclick="advanceInning()">1表</span>
+    </div>
+    <div class="score-box">
+      <span class="score-title">自チーム</span>
+      <span class="score-val" id="disp-score-my" onclick="addScore('my', 1)" oncontextmenu="addScore('my', -1); return false;">0</span>
+    </div>
+    <div class="score-box">
+      <span class="score-title">相手</span>
+      <span class="score-val" id="disp-score-opp" onclick="addScore('opp', 1)" oncontextmenu="addScore('opp', -1); return false;">0</span>
+    </div>
+    <div class="bso-container">
+      <div class="bso-row"><span class="bso-label" style="color:#22c55e;">B</span><div class="bso-dots" onclick="stepBSO('b')"><div class="bso-dot" id="b-1"></div><div class="bso-dot" id="b-2"></div><div class="bso-dot" id="b-3"></div></div></div>
+      <div class="bso-row"><span class="bso-label" style="color:#eab308;">S</span><div class="bso-dots" onclick="stepBSO('s')"><div class="bso-dot" id="s-1"></div><div class="bso-dot" id="s-2"></div></div></div>
+      <div class="bso-row"><span class="bso-label" style="color:#ef4444;">O</span><div class="bso-dots" onclick="stepBSO('o')"><div class="bso-dot" id="o-1"></div><div class="bso-dot" id="o-2"></div></div></div>
+    </div>
+  </div>
+
+  <!-- グラウンド & SVG -->
+  <div id="field-container">
+    <svg id="svgField" viewBox="0 0 1200 1300" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <pattern id="grass-stripe" width="1200" height="100" patternUnits="userSpaceOnUse">
+          <rect x="0" y="0" width="1200" height="50" fill="#15803d"/>
+          <rect x="0" y="50" width="1200" height="50" fill="#166534"/>
+        </pattern>
+        <filter id="laser-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+
+        <!-- 特化矢印マーカー -->
+        <marker id="arrow-throw" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/>
+        </marker>
+        <marker id="arrow-run" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#22c55e"/>
+        </marker>
+        <marker id="arrow-hit" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#eab308"/>
+        </marker>
+        <marker id="arrow-field" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/>
+        </marker>
+      </defs>
+
+      <g id="viewport">
+        <!-- 外野 & フェンス -->
+        <path d="M 100 980 L 100 450 A 700 700 0 0 1 1100 450 L 1100 980 Z" fill="url(#grass-stripe)" />
+        <path d="M 85 990 L 85 430 A 725 725 0 0 1 1115 430 L 1115 990" fill="none" stroke="#334155" stroke-width="14" />
+        <path d="M 90 990 L 90 435 A 720 720 0 0 1 1110 435 L 1110 990" fill="none" stroke="#f59e0b" stroke-width="4" />
+
+        <!-- 内野 & ダイヤモンド -->
+        <path d="M 600 980 L 260 640 A 480 480 0 0 1 940 640 Z" fill="#b45309" />
+        <polygon points="600,950 840,710 600,470 360,710" fill="url(#grass-stripe)" />
+
+        <!-- ファールライン -->
+        <line x1="600" y1="980" x2="90" y2="435" stroke="#ffffff" stroke-width="4" />
+        <line x1="600" y1="980" x2="1110" y2="435" stroke="#ffffff" stroke-width="4" />
+
+        <!-- マウンド & ホームベース -->
+        <circle cx="600" cy="710" r="36" fill="#b45309" />
+        <rect x="588" y="704" width="24" height="10" fill="#ffffff" rx="2" />
+        <rect x="540" y="960" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
+        <rect x="630" y="960" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
+        <polygon points="585,970 615,970 615,985 600,1000 585,985" fill="#ffffff" />
+
+        <!-- ベース -->
+        <rect x="828" y="698" width="24" height="24" fill="#ffffff" transform="rotate(45 840 710)" />
+        <rect x="588" y="458" width="24" height="24" fill="#ffffff" transform="rotate(45 600 470)" />
+        <rect x="348" y="698" width="24" height="24" fill="#ffffff" transform="rotate(45 360 710)" />
+
+        <g id="linesLayer"></g>
+        <g id="objectsLayer"></g>
+      </g>
+    </svg>
+  </div>
+
+  <!-- 下部特化ツール & シフト切り替えバー -->
+  <div class="field-bottom-bar">
+    <div class="btn-group">
+      <button class="btn active" id="line-type-throw" onclick="setLineType('throw')">🔴 送球</button>
+      <button class="btn" id="line-type-run" onclick="setLineType('run')">🟢 走塁</button>
+      <button class="btn" id="line-type-hit" onclick="setLineType('hit')">🟡 打球</button>
+      <button class="btn" id="line-type-field" onclick="setLineType('field')">🔵 守備</button>
+    </div>
+    <div style="width:1px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
+    <div class="btn-group">
+      <button class="btn" onclick="applyShiftPreset('normal')">通常守備</button>
+      <button class="btn" onclick="applyShiftPreset('bunt')">バント</button>
+      <button class="btn" onclick="applyShiftPreset('pull')">引っ張り</button>
+      <button class="btn" onclick="applyShiftPreset('deep')">長打警戒</button>
+      <button class="btn" onclick="applyShiftPreset('5infield')">5人内野</button>
+    </div>
+  </div>
+
+  <div class="zoom-indicator" id="zoom-disp">100%</div>
+</div>
+
+<!-- 画面2：スタメン・継投設定 -->
+<div class="page" id="lineup-page">
+  <div class="container-page">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <h3 style="margin:0; border:none;">📋 スターティングメンバー設定</h3>
+        <div style="display:flex; align-items:center; gap:15px;">
+          <label style="font-size:14px; font-weight:bold; cursor:pointer; color:#38bdf8;">
+            <input type="checkbox" id="dh-checkbox" onchange="toggleDhMode()"> 🥎 DH制採用
+          </label>
+          <button class="btn btn-success" onclick="exportPDF()">🖨️ オーダー用紙 PDF</button>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:50px;">打順</th>
+            <th style="width:110px;">守備位置</th>
+            <th>選手選択</th>
+            <th style="width:100px;">投打</th>
+            <th style="width:80px;">学年</th>
+            <th>備考</th>
+          </tr>
+        </thead>
+        <tbody id="lineup-table-body"></tbody>
+      </table>
+
+      <div id="dh-pitcher-container" style="display:none; margin-top:15px; background:rgba(15,23,42,0.6); padding:12px; border-radius:12px; border:1px solid #0284c7;">
+        <h4 style="color:#38bdf8; font-size:14px; margin-bottom:8px;">⚾ DH制指定投手 (P)</h4>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <select id="dh-pitcher-select" style="flex:1;"></select>
+          <input type="text" id="dh-pitcher-memo" placeholder="備考（右投・100球まで等）" style="flex:1.5;">
+        </div>
+      </div>
+
+      <button class="btn btn-success" style="margin-top:15px; width:100%; justify-content:center;" onclick="applyLineupToBoard()">盤面にスタメン反映</button>
+    </div>
+
+    <div class="card">
+      <h3>🔄 継投（投手リレー）設定</h3>
+      <div style="display:flex; gap:10px; margin-bottom:12px;">
+        <select id="relay-pitcher-select" style="flex:1;"></select>
+        <input type="text" id="relay-pitcher-role" placeholder="役割（中継ぎ、抑え等）" style="flex:1;">
+        <button class="btn btn-success" onclick="addRelayPitcher()">追加</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>順序 / 役割</th><th>背番号</th><th>選手名</th><th>操作</th></tr>
+        </thead>
+        <tbody id="relay-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 画面3：選手管理 -->
+<div class="page" id="roster-page">
+  <div class="container-page">
+    <div class="card">
+      <h3>👤 選手登録・管理</h3>
+      <div style="display:grid; grid-template-columns: 80px 1fr 120px 100px 120px; gap:10px; margin-bottom:15px;">
+        <input type="text" id="new-p-num" placeholder="背番号">
+        <input type="text" id="new-p-name" placeholder="選手名">
+        <select id="new-p-throws">
+          <option value="右投右打">右投右打</option>
+          <option value="右投左打">右投左打</option>
+          <option value="左投左打">左投左打</option>
+          <option value="左投右打">左投右打</option>
+        </select>
+        <select id="new-p-grade">
+          <option value="3年">3年</option>
+          <option value="2年">2年</option>
+          <option value="1年">1年</option>
+        </select>
+        <button class="btn btn-success" onclick="addRosterPlayer()">新規追加</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>背番号</th><th>選手名</th><th>投打</th><th>学年</th><th>操作</th></tr>
+        </thead>
+        <tbody id="roster-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- iPad最適化 Bottom Sheet (保存・ライブラリ) -->
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="sheet-handle" onclick="toggleBottomSheet()"></div>
+  <div class="sheet-content">
+    <div>
+      <h3 style="color:#38bdf8; margin-bottom:12px;">💾 作戦を保存</h3>
+      <input type="text" id="save-title" placeholder="タイトル（例: 満塁スクイズ警戒）" style="width:100%; margin-bottom:8px;">
+      <select id="save-category" style="width:100%; margin-bottom:8px;">
+        <option value="バント">バント</option>
+        <option value="エンドラン">エンドラン</option>
+        <option value="守備シフト">守備シフト</option>
+        <option value="牽制">牽制</option>
+        <option value="その他">その他</option>
+      </select>
+      <input type="text" id="save-tags" placeholder="タグ (カンマ区切り)" style="width:100%; margin-bottom:8px;">
+      <textarea id="save-memo" rows="3" placeholder="メモ指示内容" style="width:100%; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.15); color:#fff; border-radius:8px; padding:8px; margin-bottom:12px;"></textarea>
+      <button class="btn btn-success" style="width:100%; justify-content:center; margin-bottom:16px;" onclick="savePlay()">ライブラリへ保存</button>
+
+      <h3 style="color:#38bdf8; margin-bottom:12px;">📤 エクスポート & 共有</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-success" style="flex:1;" onclick="exportPNG()">📷 PNG画像保存</button>
+        <button class="btn" style="flex:1;" onclick="sharePlay()">🔗 共有</button>
+      </div>
+    </div>
+
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 style="color:#38bdf8; margin:0;">📚 作戦ライブラリ</h3>
+        <input type="text" id="search-library" placeholder="🔍 検索キーワード..." oninput="filterLibrary()" style="width:200px; height:36px;">
+      </div>
+      <div class="library-grid" id="saved-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 印刷用オーダー用紙テンプレート -->
+<div id="pdf-order-sheet" style="display:none;">
+  <h1 style="text-align:center; font-size:24px; text-decoration:underline; margin-bottom:10px;">スターティングオーダー表</h1>
+  <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:10px;">
+    <span>チーム名: _______________________</span>
+    <span>日付: ____年 __月 __日</span>
+  </div>
+  <table class="order-table">
+    <thead>
+      <tr><th>打順</th><th>位置</th><th>背番号</th><th>選手名</th><th>投打</th><th>備考</th></tr>
+    </thead>
+    <tbody id="pdf-order-tbody"></tbody>
+  </table>
+  <div id="pdf-relay-section" style="margin-top:20px; display:none;">
+    <h3 style="font-size:16px; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px;">【 継投・控え投手リスト 】</h3>
+    <table class="order-table">
+      <thead><tr><th>役割</th><th>背番号</th><th>選手名</th></tr></thead>
+      <tbody id="pdf-relay-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // --- 設定 & 定数 ---
+  const CONFIG = {
+    MAX_HISTORY: 50,
+    AUTO_SAVE_INTERVAL: 30000,
+    MIN_ZOOM: 0.6,
+    MAX_ZOOM: 3.0
+  };
+
+  // デフォルト配置データ
+  const defaultPlayers = [
+    { id: 'P', label: '投', num: '1', name: '投手太郎', x: 600, y: 740, color: '#ef4444' },
+    { id: 'C', label: '捕', num: '2', name: '捕手次郎', x: 600, y: 1050, color: '#ef4444' },
+    { id: '1B', label: '一', num: '3', name: '一塁三郎', x: 870, y: 670, color: '#ef4444' },
+    { id: '2B', label: '二', num: '4', name: '二塁四郎', x: 730, y: 550, color: '#ef4444' },
+    { id: '3B', label: '三', num: '5', name: '三塁五郎', x: 330, y: 670, color: '#ef4444' },
+    { id: 'SS', label: '遊', num: '6', name: '遊撃六郎', x: 470, y: 550, color: '#ef4444' },
+    { id: 'LF', label: '左', num: '7', name: '左外七郎', x: 280, y: 340, color: '#ef4444' },
+    { id: 'CF', label: '中', num: '8', name: '中外八郎', x: 600, y: 260, color: '#ef4444' },
+    { id: 'RF', label: '右', num: '9', name: '右外九郎', x: 920, y: 340, color: '#ef4444' },
+    { id: 'BATTER', label: '打', num: '10', name: '打者十郎', x: 530, y: 980, color: '#3b82f6' }
+  ];
+
+  // グローバル状態
+  let players = JSON.parse(JSON.stringify(defaultPlayers));
+  let runners = [];
+  let ball = { x: 600, y: 760 };
+  let lines = [];
+  let currentLine = null;
+
+  let currentTool = 'select'; // select, pen, laser, eraser
+  let currentLineType = 'throw'; // throw, run, hit, field
+  let currentColor = '#ffffff';
+  let strokeWidth = 6;
+  let labelMode = 'label'; // label, num, name
+
+  // 試合スコア状態
+  let gameScore = { inning: 1, isTop: true, my: 0, opp: 0, b: 0, s: 0, o: 0 };
+
+  // ズーム & パン状態
+  let zoomScale = 1.0;
+  let panX = 0, panY = 0;
+  let isPinching = false;
+  let touchStartDist = 0;
+
+  // 履歴 (Undo/Redo 50件)
+  let undoStack = [];
+  let redoStack = [];
+
+  // Apple Pencil / Touch 区分け
+  let isDraggingObj = false;
+  let isDrawingLine = false;
+  let dragTarget = null;
+  let lastTapTime = 0;
+
+  // 録画
+  let isRecording = false;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recCanvas = document.createElement('canvas');
+  recCanvas.width = 1200; recCanvas.height = 1300;
+  let recCtx = recCanvas.getContext('2d');
+
+  // SVG参照
+  const svg = document.getElementById('svgField');
+  const viewport = document.getElementById('viewport');
+  const linesLayer = document.getElementById('linesLayer');
+  const objectsLayer = document.getElementById('objectsLayer');
+
+  // --- 画面初期化 ---
+  window.addEventListener('DOMContentLoaded', () => {
+    setupPointerEvents();
+    setupMultiTouchAndGesture();
+    renderObjects();
+    renderLines();
+    updateScoreboardUI();
+    renderRosterTable();
+    
+    // 30秒自動バックアップ
+    setInterval(autoSaveState, CONFIG.AUTO_SAVE_INTERVAL);
+  });
+
+  // --- 状態保存 & Undo/Redo ---
+  function saveState() {
+    if (undoStack.length >= CONFIG.MAX_HISTORY) undoStack.shift();
+    undoStack.push(JSON.stringify({ players, runners, ball, lines, gameScore }));
+    redoStack = [];
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return;
+    redoStack.push(JSON.stringify({ players, runners, ball, lines, gameScore }));
+    const state = JSON.parse(undoStack.pop());
+    restoreState(state);
+  }
+
+  function redo() {
+    if (redoStack.length === 0) return;
+    undoStack.push(JSON.stringify({ players, runners, ball, lines, gameScore }));
+    const state = JSON.parse(redoStack.pop());
+    restoreState(state);
+  }
+
+  function restoreState(state) {
+    players = state.players;
+    runners = state.runners;
+    ball = state.ball;
+    lines = state.lines;
+    gameScore = state.gameScore || gameScore;
+    renderObjects();
+    renderLines();
+    updateScoreboardUI();
+  }
+
+  function autoSaveState() {
+    localStorage.setItem('baseball_autosave', JSON.stringify({ players, runners, ball, lines, gameScore }));
+  }
+
+  // --- Apple Pencil & Pointer Events ---
+  function setupPointerEvents() {
+    svg.addEventListener('pointerdown', (e) => {
+      // 3本指スワイプ感知（Undo/Redo）
+      if (e.touches && e.touches.length === 3) {
+        undo();
+        return;
+      }
+
+      const isPen = (e.pointerType === 'pen');
+      const pt = getSVGPoint(e);
+
+      // Apple Pencil ダブルタップ簡易検知 (消しゴム切替)
+      const now = Date.now();
+      if (isPen && (now - lastTapTime < 300)) {
+        setTool(currentTool === 'eraser' ? 'pen' : 'eraser');
+        lastTapTime = now;
+        return;
+      }
+      lastTapTime = now;
+
+      if (isPen || currentTool === 'pen' || currentTool === 'laser') {
+        saveState();
+        isDrawingLine = true;
+        // 筆圧で線幅調整
+        const pWidth = isPen && e.pressure > 0 ? e.pressure * strokeWidth * 2 : strokeWidth;
+        currentLine = {
+          type: currentLineType,
+          color: currentTool === 'laser' ? '#ff0033' : currentColor,
+          width: pWidth,
+          isLaser: currentTool === 'laser',
+          createdAt: Date.now(),
+          points: [pt]
+        };
+        lines.push(currentLine);
+      }
+    });
+
+    svg.addEventListener('pointermove', (e) => {
+      const pt = getSVGPoint(e);
+      if (isDraggingObj) {
+        if (dragTarget === 'ball') ball = pt;
+        else {
+          const p = [...players, ...runners].find(x => x.id === dragTarget);
+          if (p) { p.x = pt.x; p.y = pt.y; }
+        }
+        requestAnimationFrame(renderObjects);
+      } else if (isDrawingLine && currentLine) {
+        currentLine.points.push(pt);
+        requestAnimationFrame(renderLines);
+      } else if (currentTool === 'eraser' && (e.buttons === 1 || e.pointerType === 'pen')) {
+        lines = lines.filter(l => !l.points.some(p => Math.hypot(p.x - pt.x, p.y - pt.y) < 25));
+        requestAnimationFrame(renderLines);
+      }
+    });
+
+    svg.addEventListener('pointerup', () => {
+      isDraggingObj = false;
+      isDrawingLine = false;
+      dragTarget = null;
+      currentLine = null;
+    });
+  }
+
+  // --- ピンチズーム & パン移動 (2本指操作) ---
+  function setupMultiTouchAndGesture() {
+    const container = document.getElementById('field-container');
+
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        isPinching = true;
+        touchStartDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+      }
+    });
+
+    container.addEventListener('touchmove', (e) => {
+      if (isPinching && e.touches.length === 2) {
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = dist / touchStartDist;
+        zoomScale = Math.min(Math.max(zoomScale * factor, CONFIG.MIN_ZOOM), CONFIG.MAX_ZOOM);
+        touchStartDist = dist;
+        applyViewportTransform();
+      }
+    });
+
+    container.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) isPinching = false;
+    });
+
+    // ダブルタップで100%リセット
+    container.addEventListener('dblclick', () => {
+      zoomScale = 1.0;
+      panX = 0; panY = 0;
+      applyViewportTransform();
+    });
+  }
+
+  function applyViewportTransform() {
+    viewport.setAttribute('transform', `translate(${panX}, ${panY}) scale(${zoomScale})`);
+    document.getElementById('zoom-disp').innerText = `${Math.round(zoomScale * 100)}%`;
+  }
+
+  function getSVGPoint(e) {
+    const rect = svg.getBoundingClientRect();
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    // ズーム・パン座標逆計算
+    const rawX = ((clientX - rect.left) / rect.width) * 1200;
+    const rawY = ((clientY - rect.top) / rect.height) * 1300;
+    return {
+      x: (rawX - panX) / zoomScale,
+      y: (rawY - panY) / zoomScale
+    };
+  }
+
+  // --- 描画レンダリング ---
+  function renderObjects() {
+    objectsLayer.innerHTML = '';
+
+    // ボール描画
+    const ballG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    ballG.innerHTML = `
+      <circle cx="${ball.x}" cy="${ball.y}" r="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" style="cursor:grab; filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.6));"/>
+      <path d="M ${ball.x-10} ${ball.y-10} A 12 12 0 0 1 ${ball.x-10} ${ball.y+10}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,3"/>
+      <path d="M ${ball.x+10} ${ball.y-10} A 12 12 0 0 0 ${ball.x+10} ${ball.y+10}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,3"/>
+    `;
+    ballG.onpointerdown = (e) => { if(e.pointerType !== 'pen'){ e.stopPropagation(); startObjDrag('ball'); } };
+    objectsLayer.appendChild(ballG);
+
+    // 選手・ランナー描画
+    [...players, ...runners].forEach(p => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      let textVis = p.label;
+      if (labelMode === 'num') textVis = p.num || p.label;
+      if (labelMode === 'name') textVis = p.name || p.label;
+
+      g.innerHTML = `
+        <circle cx="${p.x}" cy="${p.y}" r="32" fill="${p.color}" stroke="#ffffff" stroke-width="3.5" style="cursor:grab; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));"/>
+        <text x="${p.x}" y="${p.y + 7}" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="900" style="pointer-events:none;">${textVis}</text>
+      `;
+      g.onpointerdown = (e) => { if(e.pointerType !== 'pen'){ e.stopPropagation(); startObjDrag(p.id); } };
+      objectsLayer.appendChild(g);
+    });
+  }
+
+  function renderLines() {
+    linesLayer.innerHTML = '';
+    const now = Date.now();
+    lines = lines.filter(l => !l.isLaser || (now - l.createdAt < 1500));
+
+    lines.forEach(l => {
+      if (l.points.length < 2) return;
+      const d = l.points.reduce((acc, p, i) => `${acc} ${i===0?'M':'L'} ${p.x} ${p.y}`, '');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', l.color);
+      path.setAttribute('stroke-width', l.width || 6);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke-linecap', 'round');
+
+      // 線種＆矢印設定
+      if (l.type === 'run') path.setAttribute('stroke-dasharray', '10,8');
+      if (l.type === 'field') path.setAttribute('stroke-dasharray', '4,6');
+      if (l.type) path.setAttribute('marker-end', `url(#arrow-${l.type})`);
+      if (l.isLaser) path.setAttribute('filter', 'url(#laser-glow)');
+
+      linesLayer.appendChild(path);
+    });
+  }
+
+  function startObjDrag(id) {
+    saveState();
+    isDraggingObj = true;
+    dragTarget = id;
+  }
+
+  // --- 守備シフトプリセット ---
+  function applyShiftPreset(preset) {
+    saveState();
+    if (preset === 'normal') players = JSON.parse(JSON.stringify(defaultPlayers));
+    else if (preset === 'bunt') {
+      const posMap = { '1B': {x:780,y:780}, '3B': {x:420,y:780}, 'SS': {x:600,y:550}, '2B': {x:780,y:670} };
+      players.forEach(p => { if(posMap[p.id]) { p.x = posMap[p.id].x; p.y = posMap[p.id].y; } });
+    } else if (preset === 'pull') {
+      const posMap = { '1B': {x:900,y:700}, '2B': {x:800,y:580}, 'SS': {x:620,y:580}, '3B': {x:450,y:700} };
+      players.forEach(p => { if(posMap[p.id]) { p.x = posMap[p.id].x; p.y = posMap[p.id].y; } });
+    } else if (preset === 'deep') {
+      players.forEach(p => { if(['LF','CF','RF'].includes(p.id)) p.y -= 80; });
+    } else if (preset === '5infield') {
+      const cf = players.find(p => p.id === 'CF');
+      if (cf) { cf.x = 600; cf.y = 620; }
+    }
+    renderObjects();
+  }
+
+  // --- 試合スコアボードコントロール ---
+  function updateScoreboardUI() {
+    document.getElementById('disp-inning').innerText = `${gameScore.inning}${gameScore.isTop ? '表' : '裏'}`;
+    document.getElementById('disp-score-my').innerText = gameScore.my;
+    document.getElementById('disp-score-opp').innerText = gameScore.opp;
+
+    for (let i = 1; i <= 3; i++) document.getElementById(`b-${i}`)?.classList.toggle('b-active', gameScore.b >= i);
+    for (let i = 1; i <= 2; i++) document.getElementById(`s-${i}`)?.classList.toggle('s-active', gameScore.s >= i);
+    for (let i = 1; i <= 2; i++) document.getElementById(`o-${i}`)?.classList.toggle('o-active', gameScore.o >= i);
+  }
+
+  function advanceInning() {
+    saveState();
+    if (gameScore.isTop) gameScore.isTop = false;
+    else { gameScore.isTop = true; gameScore.inning++; }
+    gameScore.b = 0; gameScore.s = 0;
+    updateScoreboardUI();
+  }
+
+  function addScore(team, val) {
+    saveState();
+    if (team === 'my') gameScore.my = Math.max(0, gameScore.my + val);
+    else gameScore.opp = Math.max(0, gameScore.opp + val);
+    updateScoreboardUI();
+  }
+
+  function stepBSO(type) {
+    saveState();
+    if (type === 'b') gameScore.b = (gameScore.b + 1) % 4;
+    if (type === 's') gameScore.s = (gameScore.s + 1) % 3;
+    if (type === 'o') gameScore.o = (gameScore.o + 1) % 3;
+    updateScoreboardUI();
+  }
+
+  // --- UI・ツール切替 ---
+  function setTool(t) {
+    currentTool = t;
+    document.querySelectorAll('.header-group .btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tool-${t}`)?.classList.add('active');
+  }
+
+  function setLineType(t) {
+    currentLineType = t;
+    document.querySelectorAll('.field-bottom-bar .btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`line-type-${t}`)?.classList.add('active');
+  }
+
+  function setColor(c, el) {
+    currentColor = c;
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function setStrokeWidth(w) { strokeWidth = parseInt(w); }
+
+  function toggleLabelMode() {
+    labelMode = labelMode === 'label' ? 'num' : labelMode === 'num' ? 'name' : 'label';
+    document.getElementById('btn-toggle-label').innerText = labelMode === 'label' ? '🔢 ポジション' : labelMode === 'num' ? '🔢 背番号' : '🔢 選手名';
+    renderObjects();
+  }
+
+  function toggleBottomSheet() {
+    document.getElementById('bottomSheet').classList.toggle('open');
+    if (document.getElementById('bottomSheet').classList.contains('open')) filterLibrary();
+  }
+
+  function switchPage(pageId, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function addRunner() {
+    if (runners.length >= 3) return;
+    saveState();
+    const idx = runners.length + 1;
+    const pos = idx === 1 ? { x: 860, y: 730 } : idx === 2 ? { x: 600, y: 420 } : { x: 340, y: 730 };
+    runners.push({ id: `R${idx}`, label: `走${idx}`, num: `R${idx}`, name: `走者${idx}`, x: pos.x, y: pos.y, color: '#eab308' });
+    renderObjects();
+  }
+
+  function removeRunner() { saveState(); runners.pop(); renderObjects(); }
+
+  function resetBoard() {
+    if (!confirm('作戦ボードを初期リセットしますか？')) return;
+    saveState();
+    players = JSON.parse(JSON.stringify(defaultPlayers));
+    runners = [];
+    ball = { x: 600, y: 760 };
+    lines = [];
+    renderObjects();
+    renderLines();
+  }
+
+  // --- 作戦ライブラリ & Bottom Sheet 機能 ---
+  function savePlay() {
+    const title = document.getElementById('save-title').value || '無題の戦術';
+    const category = document.getElementById('save-category').value;
+    const tags = document.getElementById('save-tags').value;
+    const memo = document.getElementById('save-memo').value;
+
+    // サムネイル用DataURL生成
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    img.onload = () => {
+      recCtx.clearRect(0,0,1200,1300);
+      recCtx.drawImage(img, 0, 0);
+      const thumb = recCanvas.toDataURL('image/jpeg', 0.5);
+
+      const saves = JSON.parse(localStorage.getItem('baseball_saved_plays') || '[]');
+      saves.push({ id: Date.now(), title, category, tags, memo, thumb, date: new Date().toLocaleDateString(), fav: false, players, runners, ball, lines });
+      localStorage.setItem('baseball_saved_plays', JSON.stringify(saves));
+
+      document.getElementById('save-title').value = '';
+      document.getElementById('save-memo').value = '';
+      filterLibrary();
+      alert('ライブラリに作戦を保存しました！');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+  }
+
+  function filterLibrary() {
+    const saves = JSON.parse(localStorage.getItem('baseball_saved_plays') || '[]');
+    const kw = document.getElementById('search-library').value.toLowerCase();
+    const container = document.getElementById('saved-list');
+    container.innerHTML = '';
+
+    saves.filter(s => s.title.toLowerCase().includes(kw) || s.category.includes(kw)).forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'play-card';
+      card.innerHTML = `
+        <div class="play-card-fav" onclick="toggleFav(${s.id}, event)">${s.fav ? '★' : '☆'}</div>
+        <img src="${s.thumb || ''}" alt="thumb">
+        <div class="play-card-body">
+          <div class="play-card-title">${s.title}</div>
+          <div class="play-card-meta"><span>${s.category}</span><span>${s.date}</span></div>
+        </div>
+      `;
+      card.onclick = () => {
+        saveState();
+        players = s.players; runners = s.runners || []; ball = s.ball; lines = s.lines || [];
+        renderObjects(); renderLines();
+        toggleBottomSheet();
+      };
+      container.appendChild(card);
+    });
+  }
+
+  function toggleFav(id, e) {
+    e.stopPropagation();
+    const saves = JSON.parse(localStorage.getItem('baseball_saved_plays') || '[]');
+    const target = saves.find(s => s.id === id);
+    if (target) { target.fav = !target.fav; localStorage.setItem('baseball_saved_plays', JSON.stringify(saves)); filterLibrary(); }
+  }
+
+  function sharePlay() {
+    if (navigator.share) {
+      navigator.share({ title: '野球作戦ボード', text: '作戦ボードの戦術を共有します。' });
+    } else {
+      alert('お使いのブラウザはWeb Share APIに対応していません。');
+    }
+  }
+
+  function exportPNG() {
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
-    canvas.width = 1200;
-    canvas.height = 1300;
+    canvas.width = 1200; canvas.height = 1300;
     const ctx = canvas.getContext('2d');
     const img = new Image();
     img.onload = () => {
       ctx.drawImage(img, 0, 0);
       const a = document.createElement('a');
-      a.download = `baseball-board-${Date.now()}.png`;
+      a.download = `baseball-strategy-${Date.now()}.png`;
       a.href = canvas.toDataURL('image/png');
       a.click();
     };
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
   }
 
-  // --- スタメン・選手管理・継投ロジック ---
+  // --- 画面録画 ---
+  function toggleRecord() {
+    const btn = document.getElementById('btn-record');
+    if (!isRecording) {
+      try {
+        recordedChunks = [];
+        const stream = recCanvas.captureStream(30);
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `baseball-record-${Date.now()}.webm`;
+          a.click();
+        };
+        mediaRecorder.start();
+        isRecording = true;
+        btn.innerText = '⏹️ 停止';
+        btn.classList.add('btn-recording');
+      } catch(err) { alert('録画未対応の環境です: ' + err); }
+    } else {
+      isRecording = false;
+      if (mediaRecorder) mediaRecorder.stop();
+      btn.innerText = '🎥 録画';
+      btn.classList.remove('btn-recording');
+    }
+  }
+
+  // --- スタメン & 選手管理ロジック ---
   let isDhMode = false;
   let roster = [
-    { num: '1', name: '投手 太郎' },
-    { num: '2', name: '捕手 次郎' },
-    { num: '3', name: '一塁 三郎' },
-    { num: '4', name: '二塁 四郎' },
-    { num: '5', name: '三塁 五郎' },
-    { num: '6', name: '遊撃 六郎' },
-    { num: '7', name: '左外 七郎' },
-    { num: '8', name: '中外 八郎' },
-    { num: '9', name: '右外 九郎' },
-    { num: '10', name: '打者 十郎' }
+    { num: '1', name: '投手太郎', throws: '右投右打', grade: '3年' },
+    { num: '2', name: '捕手次郎', throws: '右投右打', grade: '3年' },
+    { num: '3', name: '一塁三郎', throws: '右投左打', grade: '2年' },
+    { num: '4', name: '二塁四郎', throws: '右投右打', grade: '2年' },
+    { num: '5', name: '三塁五郎', throws: '右投右打', grade: '3年' },
+    { num: '6', name: '遊撃六郎', throws: '右投左打', grade: '1年' },
+    { num: '7', name: '左外七郎', throws: '左投左打', grade: '2年' },
+    { num: '8', name: '中外八郎', throws: '右投両打', grade: '3年' },
+    { num: '9', name: '右外九郎', throws: '右投右打', grade: '1年' }
   ];
 
   let lineup = [
@@ -42,7 +1146,6 @@ function exportPNG() {
     { order: 9, pos: '投', playerNum: '1', memo: '' }
   ];
 
-  let dhPitcher = { num: '1', memo: '' };
   let relayPitchers = [];
 
   function toggleDhMode() {
@@ -57,60 +1160,34 @@ function exportPNG() {
     const positions = ['投', '捕', '一', '二', '三', '遊', '左', '中', '右', 'DH'];
 
     lineup.forEach((item, index) => {
+      const pObj = roster.find(r => r.num === item.playerNum) || {};
       const tr = document.createElement('tr');
       const posOptions = positions.map(p => `<option value="${p}" ${item.pos === p ? 'selected' : ''}>${p}</option>`).join('');
       const playerOptions = roster.map(p => `<option value="${p.num}" ${item.playerNum === p.num ? 'selected' : ''}>#${p.num} ${p.name}</option>`).join('');
 
       tr.innerHTML = `
         <td>${item.order}</td>
-        <td><select onchange="updateLineup(${index}, 'pos', this.value)">${posOptions}</select></td>
-        <td><select onchange="updateLineup(${index}, 'playerNum', this.value)">${playerOptions}</select></td>
-        <td><input type="text" value="${item.memo}" oninput="updateLineup(${index}, 'memo', this.value)" style="width:100%;"></td>
+        <td><select onchange="lineup[${index}].pos=this.value">${posOptions}</select></td>
+        <td><select onchange="lineup[${index}].playerNum=this.value; renderLineupTable();">${playerOptions}</select></td>
+        <td>${pObj.throws || '-'}</td>
+        <td>${pObj.grade || '-'}</td>
+        <td><input type="text" value="${item.memo}" oninput="lineup[${index}].memo=this.value" style="width:100%;"></td>
       `;
       tbody.appendChild(tr);
     });
-
-    renderDhPitcherSelect();
-    renderRelayPitcherSelect();
-  }
-
-  function updateLineup(index, key, val) {
-    lineup[index][key] = val;
-  }
-
-  function renderDhPitcherSelect() {
-    const select = document.getElementById('dh-pitcher-select');
-    if (!select) return;
-    select.innerHTML = roster.map(p => `<option value="${p.num}" ${dhPitcher.num === p.num ? 'selected' : ''}>#${p.num} ${p.name}</option>`).join('');
-    select.onchange = (e) => { dhPitcher.num = e.target.value; };
   }
 
   function applyLineupToBoard() {
     saveState();
     lineup.forEach(item => {
       const pObj = roster.find(r => r.num === item.playerNum);
-      const name = pObj ? pObj.name : '';
       const fieldP = players.find(p => p.label === item.pos || p.id === item.pos);
-      if (fieldP) {
-        fieldP.num = item.playerNum;
-        fieldP.name = name;
-      }
+      if (fieldP && pObj) { fieldP.num = pObj.num; fieldP.name = pObj.name; }
     });
-
-    if (isDhMode) {
-      const pObj = roster.find(r => r.num === dhPitcher.num);
-      const pitchP = players.find(p => p.id === 'P');
-      if (pitchP && pObj) {
-        pitchP.num = pObj.num;
-        pitchP.name = pObj.name;
-      }
-    }
-
     renderObjects();
-    alert('スタメン情報を作戦ボードに反映しました！');
+    alert('スタメン情報をボードに反映しました！');
   }
 
-  // 選手管理
   function renderRosterTable() {
     const tbody = document.getElementById('roster-table-body');
     tbody.innerHTML = '';
@@ -119,7 +1196,9 @@ function exportPNG() {
       tr.innerHTML = `
         <td>#${p.num}</td>
         <td>${p.name}</td>
-        <td><button class="btn btn-danger" onclick="deleteRosterPlayer(${idx})">削除</button></td>
+        <td>${p.throws}</td>
+        <td>${p.grade}</td>
+        <td><button class="btn btn-danger" onclick="roster.splice(${idx},1); renderRosterTable();">削除</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -129,39 +1208,24 @@ function exportPNG() {
   function addRosterPlayer() {
     const num = document.getElementById('new-p-num').value.trim();
     const name = document.getElementById('new-p-name').value.trim();
+    const throws = document.getElementById('new-p-throws').value;
+    const grade = document.getElementById('new-p-grade').value;
 
-    if (!num || !name) return alert('背番号と選手名を入力してください');
-    if (roster.some(r => r.num === num)) return alert('その背番号は既に使用されています');
-
-    roster.push({ num, name });
+    if (!num || !name) return alert('背番号と名前を入力してください');
+    roster.push({ num, name, throws, grade });
     document.getElementById('new-p-num').value = '';
     document.getElementById('new-p-name').value = '';
     renderRosterTable();
   }
 
-  function deleteRosterPlayer(idx) {
-    if (confirm('選手を削除しますか？')) {
-      roster.splice(idx, 1);
-      renderRosterTable();
-    }
-  }
-
-  // 継投管理
-  function renderRelayPitcherSelect() {
-    const select = document.getElementById('relay-pitcher-select');
-    if (!select) return;
-    select.innerHTML = roster.map(p => `<option value="${p.num}">#${p.num} ${p.name}</option>`).join('');
-  }
-
   function addRelayPitcher() {
-    const num = document.getElementById('relay-pitcher-select').value;
+    const num = document.getElementById('relay-pitcher-select')?.value;
     const role = document.getElementById('relay-pitcher-role').value || '中継ぎ';
     const pObj = roster.find(r => r.num === num);
-    if (!pObj) return;
-
-    relayPitchers.push({ role, num: pObj.num, name: pObj.name });
-    document.getElementById('relay-pitcher-role').value = '';
-    renderRelayTable();
+    if (pObj) {
+      relayPitchers.push({ role, num: pObj.num, name: pObj.name });
+      renderRelayTable();
+    }
   }
 
   function renderRelayTable() {
@@ -173,72 +1237,23 @@ function exportPNG() {
         <td>${rp.role}</td>
         <td>#${rp.num}</td>
         <td>${rp.name}</td>
-        <td><button class="btn btn-danger" onclick="deleteRelayPitcher(${idx})">削除</button></td>
+        <td><button class="btn btn-danger" onclick="relayPitchers.splice(${idx},1); renderRelayTable();">削除</button></td>
       `;
       tbody.appendChild(tr);
     });
   }
 
-  function deleteRelayPitcher(idx) {
-    relayPitchers.splice(idx, 1);
-    renderRelayTable();
-  }
-
-  // 印刷（PDF出力）
   function exportPDF() {
     const pdfOrderTbody = document.getElementById('pdf-order-tbody');
     pdfOrderTbody.innerHTML = '';
-
     lineup.forEach(item => {
-      const pObj = roster.find(r => r.num === item.playerNum);
-      const name = pObj ? pObj.name : '';
+      const pObj = roster.find(r => r.num === item.playerNum) || {};
       const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.order}</td>
-        <td>${item.pos}</td>
-        <td>${item.playerNum}</td>
-        <td>${name}</td>
-        <td>${item.memo}</td>
-      `;
+      tr.innerHTML = `<td>${item.order}</td><td>${item.pos}</td><td>${item.playerNum}</td><td>${pObj.name||''}</td><td>${pObj.throws||''}</td><td>${item.memo}</td>`;
       pdfOrderTbody.appendChild(tr);
     });
-
-    if (isDhMode) {
-      const pObj = roster.find(r => r.num === dhPitcher.num);
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>P</td>
-        <td>投</td>
-        <td>${dhPitcher.num}</td>
-        <td>${pObj ? pObj.name : ''}</td>
-        <td>${document.getElementById('dh-pitcher-memo').value || ''}</td>
-      `;
-      pdfOrderTbody.appendChild(tr);
-    }
-
-    const pdfRelaySection = document.getElementById('pdf-relay-section');
-    const pdfRelayTbody = document.getElementById('pdf-relay-tbody');
-    if (relayPitchers.length > 0) {
-      pdfRelaySection.style.display = 'block';
-      pdfRelayTbody.innerHTML = '';
-      relayPitchers.forEach(rp => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${rp.role}</td><td>${rp.num}</td><td>${rp.name}</td>`;
-        pdfRelayTbody.appendChild(tr);
-      });
-    } else {
-      pdfRelaySection.style.display = 'none';
-    }
-
     window.print();
   }
-
-  // 初期ロード実行
-  renderObjects();
-  renderLines();
-  renderShiftButtons();
-  filterLibrary();
-  renderRosterTable();
 </script>
 </body>
 </html>
