@@ -6,19 +6,20 @@
   <title>野球デジタル作戦ボード PRO</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #060d1f; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #060d1f; color: #f8fafc; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; }
 
     /* メインタブ */
-    nav { background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; padding: 0 10px; z-index: 30; height: 42px; align-items: center; }
+    nav { background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; padding: 0 10px; z-index: 30; height: 42px; align-items: center; flex-shrink: 0; }
     .nav-btn { background: transparent; color: #94a3b8; border: none; padding: 10px 16px; font-size: 13px; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.15s; }
     .nav-btn:hover { color: #f8fafc; }
     .nav-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: #1e293b; }
 
-    .page { display: none; flex: 1; height: calc(100vh - 42px); overflow: hidden; position: relative; }
+    /* ページ切り替え（縦方向に要素を並べるよう修正） */
+    .page { display: none; flex: 1; height: calc(100vh - 42px); flex-direction: column; overflow: hidden; position: relative; }
     .page.active { display: flex; }
 
     /* 整理されたコンパクトヘッダー */
-    header { background: rgba(30, 41, 59, 0.95); padding: 6px 12px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #334155; z-index: 20; backdrop-filter: blur(8px); }
+    header { background: rgba(30, 41, 59, 0.95); padding: 6px 12px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #334155; z-index: 20; backdrop-filter: blur(8px); flex-shrink: 0; }
     
     .btn { background: #334155; color: #fff; border: 1px solid #475569; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: background 0.15s; }
     .btn:hover { background: #475569; }
@@ -36,11 +37,11 @@
     .out-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #ef4444; cursor: pointer; background: transparent; }
     .out-dot.active { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
 
-    /* フルサイズグラウンド表示 */
+    /* フルサイズグラウンド表示（画面目一杯に拡大） */
     #field-container { flex: 1; position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #040914; overflow: hidden; }
-    svg { width: 100%; height: 100%; max-width: 1200px; max-height: 1300px; }
+    svg { width: 100%; height: 100%; display: block; }
 
-    /* 右上 💾 トグル保存パネル */
+    /* 右上 💾 トグル保存ボタン & パネル */
     .btn-save-toggle { position: absolute; top: 52px; right: 15px; z-index: 25; width: 38px; height: 38px; border-radius: 50%; background: #0284c7; color: #fff; border: 2px solid #38bdf8; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
     .side-panel { display: none; position: absolute; top: 98px; right: 15px; width: 280px; background: rgba(15, 23, 42, 0.95); padding: 14px; border-radius: 8px; border: 1px solid #334155; backdrop-filter: blur(10px); z-index: 25; max-height: calc(100vh - 120px); overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.7); }
     .side-panel.open { display: block; }
@@ -156,7 +157,7 @@
   </div>
 
   <div id="field-container">
-    <svg id="svgField" viewBox="0 0 1200 1300">
+    <svg id="svgField" viewBox="0 0 1200 1300" preserveAspectRatio="xMidYMid meet">
       <defs>
         <pattern id="grass-stripe" width="1200" height="100" patternUnits="userSpaceOnUse">
           <rect x="0" y="0" width="1200" height="50" fill="#15803d"/>
@@ -185,12 +186,12 @@
       <circle cx="600" cy="710" r="36" fill="#b45309" />
       <rect x="588" y="704" width="24" height="10" fill="#ffffff" rx="2" />
 
-      <!-- ホームベース（尖った頂点をキャッチャー方向＝下に向ける正しく修正された向き） -->
+      <!-- ホームベース -->
       <rect x="540" y="960" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
       <rect x="630" y="960" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
       <polygon points="585,970 615,970 615,985 600,1000 585,985" fill="#ffffff" />
 
-      <!-- 拡充されたバックストップエリア（キャッチャー後方を広く確保） -->
+      <!-- キャッチャー後方エリア -->
       <path d="M 200 1020 Q 600 1250 1000 1020" fill="#b45309" opacity="0.6" />
       <path d="M 150 1000 Q 600 1280 1050 1000" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="6,6" />
 
@@ -229,7 +230,7 @@
   </div>
 </div>
 
-<!-- 画面3：選手管理 (背番号重複チェック付) -->
+<!-- 画面3：選手管理 -->
 <div class="page" id="roster-page">
   <div class="container-page">
     <div class="card">
@@ -265,7 +266,6 @@
 </div>
 
 <script>
-  // デフォルト守備9人 ＋ 打者コマ
   const defaultPlayers = [
     { id: 'P', label: '投', num: '1', name: '', x: 600, y: 740, color: '#ef4444' },
     { id: 'C', label: '捕', num: '2', name: '', x: 600, y: 1050, color: '#ef4444' },
@@ -294,7 +294,6 @@
   let isDrawingLine = false;
   let dragTarget = null;
 
-  // Undo / Redo スタック
   let undoStack = [];
   let redoStack = [];
 
@@ -348,7 +347,6 @@
   function renderObjects() {
     objectsLayer.innerHTML = '';
 
-    // ボール (リアル野球ボールデザイン)
     const ballG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     ballG.innerHTML = `
       <circle cx="${ball.x}" cy="${ball.y}" r="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" style="cursor:grab; filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.6));"/>
@@ -358,7 +356,6 @@
     ballG.onmousedown = ballG.ontouchstart = (e) => { e.stopPropagation(); startObjDrag('ball'); };
     objectsLayer.appendChild(ballG);
 
-    // 選手 (大コマ半径30px)
     const allPlayers = [...players, ...runners];
     allPlayers.forEach(p => {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -394,7 +391,6 @@
     });
   }
 
-  // ペンモード時でも選手にカーソルを合わせたときは優先ドラッグ
   function startObjDrag(targetId) {
     saveState();
     isDraggingObj = true;
@@ -444,7 +440,6 @@
     currentLine = null;
   };
 
-  // 守備シフトテンプレート
   function applyShift(type) {
     saveState();
     if (type === 'standard') {
@@ -463,7 +458,6 @@
     renderObjects();
   }
 
-  // アウトカウント
   function setOutCount(count) {
     saveState();
     outCount = (outCount === count) ? count - 1 : count;
@@ -474,7 +468,6 @@
     document.getElementById('out-2').classList.toggle('active', outCount >= 2);
   }
 
-  // 走者追加・削除
   function addRunner() {
     if (runners.length >= 3) return;
     saveState();
@@ -485,7 +478,6 @@
   }
   function removeRunner() { saveState(); runners.pop(); renderObjects(); }
 
-  // 作戦保存・カテゴリ・ライブラリ検索
   function savePlay() {
     const title = document.getElementById('save-title').value || '無題の戦術';
     const category = document.getElementById('save-category').value;
@@ -515,7 +507,7 @@
       const item = document.createElement('div');
       item.style.cssText = 'background:#1e293b; padding:8px; border-radius:6px; margin-bottom:6px; border:1px solid #334155; cursor:pointer; font-size:12px;';
       item.innerHTML = `
-        <div style="display:flex; justify-style:space-between;"><b style="color:#38bdf8;">${s.title}</b><span style="font-size:10px; background:#0284c7; padding:1px 4px; border-radius:3px;">${s.category||'一般'}</span></div>
+        <div style="display:flex; justify-content:space-between;"><b style="color:#38bdf8;">${s.title}</b><span style="font-size:10px; background:#0284c7; padding:1px 4px; border-radius:3px;">${s.category||'一般'}</span></div>
         <p style="color:#94a3b8; font-size:11px; margin-top:3px;">${s.memo}</p>
       `;
       item.onclick = () => {
@@ -527,7 +519,6 @@
     });
   }
 
-  // 盤面リセット（背番号・名前はリセットせずに位置のみ初期化）
   function resetBoard() {
     saveState();
     const currentMap = {};
@@ -564,7 +555,6 @@
     renderObjects();
   }
 
-  // PNG画像保存
   function exportPNG() {
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
@@ -581,7 +571,6 @@
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
   }
 
-  // --- 選手管理（背番号重複防止機能付き） ---
   function getRoster() { return JSON.parse(localStorage.getItem('baseball_roster') || '[]'); }
 
   function addRosterPlayer() {
@@ -619,7 +608,6 @@
     renderRoster(); renderLineupTable();
   }
 
-  // --- スタメン設定 (DH追加・ポジション可変・備考欄・PDF作成) ---
   const posOptions = ['P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'];
 
   function renderLineupTable() {
@@ -666,7 +654,6 @@
     renderObjects();
   }
 
-  // オーダー用紙 PDF 出力
   function exportPDF() {
     const roster = getRoster();
     const pdfTbody = document.getElementById('pdf-order-tbody');
@@ -692,7 +679,6 @@
     window.print();
   }
 
-  // 初期起動
   setInterval(renderLines, 80);
   renderObjects();
   filterLibrary();
