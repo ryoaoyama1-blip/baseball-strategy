@@ -3,54 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>プロ仕様 野球デジタル作战ボード</title>
+  <title>野球デジタル作戦ボード PRO</title>
   <style>
-    :root {
-      --bg-color: #0f172a;
-      --panel-bg: rgba(30, 41, 59, 0.95);
-      --text-color: #f8fafc;
-      --border-color: #334155;
-      --field-grass-1: #15803d;
-      --field-grass-2: #166534;
-      --field-dirt: #b45309;
-    }
-
-    body.night-mode {
-      --bg-color: #020617;
-      --panel-bg: rgba(15, 23, 42, 0.95);
-      --field-grass-1: #064e3b;
-      --field-grass-2: #022c22;
-      --field-dirt: #78350f;
-    }
-
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b1329; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* ヘッダー・ツールバー */
-    header { background: var(--panel-bg); padding: 8px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); z-index: 10; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
-    .title { font-weight: 800; font-size: 16px; color: #38bdf8; margin-right: 5px; display: flex; align-items: center; gap: 6px; }
+    header { background: #1e293b; padding: 8px 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-bottom: 2px solid #334155; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    .title { font-weight: 800; font-size: 16px; color: #38bdf8; display: flex; align-items: center; gap: 6px; margin-right: 4px; }
     
-    .btn { background: #334155; color: #fff; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; }
+    .btn { background: #334155; color: #fff; border: 1px solid #475569; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s; }
     .btn:hover { background: #475569; }
-    .btn.active { background: #0284c7; border-color: #38bdf8; }
-    .btn-danger { background: #991b1b; }
+    .btn.active { background: #0284c7; border-color: #38bdf8; box-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
+    .btn-danger { background: #991b1b; border-color: #b91c1c; }
     .btn-danger:hover { background: #dc2626; }
-    .btn-success { background: #166534; }
+    .btn-success { background: #166534; border-color: #15803d; }
     .btn-success:hover { background: #22c55e; }
 
-    .btn-group { display: flex; background: #0f172a; padding: 3px; border-radius: 6px; border: 1px solid var(--border-color); gap: 2px; }
-    select { background: #1e293b; color: #fff; border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none; }
+    .btn-group { display: flex; background: #0f172a; padding: 3px; border-radius: 6px; border: 1px solid #334155; gap: 2px; }
+    
+    .color-picker { display: flex; align-items: center; gap: 5px; background: #0f172a; padding: 4px 8px; border-radius: 6px; border: 1px solid #334155; }
+    .color-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.1s; }
+    .color-dot:hover { transform: scale(1.15); }
+    .color-dot.selected { border-color: #ffffff; transform: scale(1.25); box-shadow: 0 0 8px rgba(255,255,255,0.8); }
 
-    /* メインフィールド */
-    #field-container { flex: 1; position: relative; width: 100vw; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; overflow: hidden; }
-    svg { width: 100%; height: 100%; max-width: 1000px; max-height: 1000px; }
+    #field-container { flex: 1; position: relative; width: 100vw; height: 100%; display: flex; justify-content: center; align-items: center; background: #060d1f; overflow: hidden; }
+    svg { width: 100%; height: 100%; max-width: 1200px; max-height: 1200px; }
 
-    /* コントロールパネル (フローティング) */
-    .panel { position: absolute; background: var(--panel-bg); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); backdrop-filter: blur(8px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); z-index: 5; }
-    #anim-panel { bottom: 15px; left: 15px; display: flex; gap: 8px; align-items: center; }
-    #info-panel { top: 70px; right: 15px; width: 200px; display: flex; flex-direction: column; gap: 8px; }
-
-    .step-counter { font-size: 14px; font-weight: bold; color: #38bdf8; min-width: 70px; text-align: center; }
+    /* 背番号登録モーダル */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); z-index: 100; justify-content: center; align-items: center; }
+    .modal-content { background: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #475569; width: 360px; color: #fff; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.6); max-height: 80vh; overflow-y: auto; }
+    .modal-content h3 { margin-bottom: 14px; font-size: 16px; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 6px; }
+    .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .modal-row { display: flex; align-items: center; justify-content: space-between; background: #0f172a; padding: 6px 10px; border-radius: 6px; border: 1px solid #334155; }
+    .modal-row label { font-size: 12px; font-weight: bold; }
+    .modal-row input { background: #1e293b; border: 1px solid #475569; color: #fff; padding: 4px 6px; border-radius: 4px; width: 50px; text-align: center; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -61,128 +47,130 @@
   <!-- ツール選択 -->
   <div class="btn-group">
     <button class="btn active" id="tool-select" onclick="setTool('select')">✋ 移動</button>
-    <button class="btn" id="tool-arrow-run" onclick="setTool('arrow-run')">🔴 走塁線</button>
-    <button class="btn" id="tool-arrow-pass" onclick="setTool('arrow-pass')">🔵 送球線</button>
-    <button class="btn" id="tool-arrow-hit" onclick="setTool('arrow-hit')">🟡 打球線</button>
+    <button class="btn" id="tool-pen" onclick="setTool('pen')">✏️ ペン</button>
+    <button class="btn" id="tool-laser" onclick="setTool('laser')">🚨 レーザー</button>
     <button class="btn" id="tool-eraser" onclick="setTool('eraser')">🧹 消しゴム</button>
   </div>
 
-  <!-- 守備・攻撃シフト (テンプレート) -->
-  <select onchange="applyTemplate(this.value)">
-    <optgroup label="守備シフト">
-      <option value="def-standard">守備：定位置</option>
-      <option value="def-infield-in">守備：前進守備</option>
-      <option value="def-double-play">守備：ゲッツー体制</option>
-      <option value="def-bunt">守備：バント警戒</option>
-      <option value="def-deep">守備：長打警戒 (外野深め)</option>
-    </optgroup>
-    <optgroup label="走者状況">
-      <option value="run-none">走者なし</option>
-      <option value="run-1b">走者1塁</option>
-      <option value="run-12b">走者1・2塁</option>
-      <option value="run-full">満塁</option>
-    </optgroup>
-  </select>
+  <!-- 豊富カラーパレット -->
+  <div class="color-picker" id="color-palette">
+    <div class="color-dot selected" style="background:#ffffff" onclick="setColor('#ffffff', this)"></div>
+    <div class="color-dot" style="background:#ef4444" onclick="setColor('#ef4444', this)"></div>
+    <div class="color-dot" style="background:#3b82f6" onclick="setColor('#3b82f6', this)"></div>
+    <div class="color-dot" style="background:#eab308" onclick="setColor('#eab308', this)"></div>
+    <div class="color-dot" style="background:#22c55e" onclick="setColor('#22c55e', this)"></div>
+    <div class="color-dot" style="background:#a855f7" onclick="setColor('#a855f7', this)"></div>
+    <div class="color-dot" style="background:#ec4899" onclick="setColor('#ec4899', this)"></div>
+  </div>
 
-  <!-- 表示切り替え -->
+  <!-- 走者コントロール -->
+  <div class="btn-group">
+    <button class="btn" onclick="addRunner()">🏃 走者追加</button>
+    <button class="btn" onclick="removeRunner()">❌ 走者削除</button>
+  </div>
+
+  <!-- 表示・背番号設定 -->
   <button class="btn" id="btn-toggle-label" onclick="toggleLabelMode()">🔢 表示: ポジション名</button>
-  <button class="btn" onclick="toggleNightMode()">🌙 ナイターモード</button>
+  <button class="btn" onclick="openNumberModal()">⚙️ 背番号登録</button>
 
-  <!-- 出力 & リセット -->
-  <button class="btn btn-success" onclick="exportPNG()">📷 PNG出力</button>
+  <!-- クリア・出力 -->
+  <button class="btn btn-success" onclick="exportPNG()">📷 PNG保存</button>
   <button class="btn btn-danger" onclick="resetAll()">🔄 リセット</button>
 </header>
 
 <div id="field-container">
-  <svg id="svgField" viewBox="0 0 1000 1000">
+  <svg id="svgField" viewBox="0 0 1200 1200">
     <defs>
-      <!-- 矢印マーカー定義 -->
-      <marker id="arrow-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/></marker>
-      <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/></marker>
-      <marker id="arrow-yellow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#eab308"/></marker>
-      
-      <!-- 芝生ストライプパターン -->
-      <pattern id="grass-pattern" width="1000" height="80" patternUnits="userSpaceOnUse">
-        <rect x="0" y="0" width="1000" height="40" fill="var(--field-grass-1)"/>
-        <rect x="0" y="40" width="1000" height="40" fill="var(--field-grass-2)"/>
+      <!-- 芝生パターン（グラデーション交差） -->
+      <pattern id="grass-stripe" width="1200" height="100" patternUnits="userSpaceOnUse">
+        <rect x="0" y="0" width="1200" height="50" fill="#15803d"/>
+        <rect x="0" y="50" width="1200" height="50" fill="#166534"/>
       </pattern>
+      
+      <!-- レーザー用グローフィルター -->
+      <filter id="laser-glow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
     </defs>
 
-    <!-- 本格球場描画 -->
-    <!-- 外野・芝生全体 -->
-    <path d="M 100 850 L 100 450 A 550 550 0 0 1 900 450 L 900 850 Z" fill="url(#grass-pattern)" />
-    <!-- フェンス外枠 -->
-    <path d="M 90 860 L 90 440 A 570 570 0 0 1 910 440 L 910 860" fill="none" stroke="#64748b" stroke-width="8" />
-    
-    <!-- 内野の土 (扇形) -->
-    <path d="M 500 850 L 220 570 A 390 390 0 0 1 780 570 Z" fill="var(--field-dirt)" />
-    <!-- 内野芝生ダイヤモンド -->
-    <polygon points="500,830 700,630 500,430 300,630" fill="url(#grass-pattern)" />
-    
-    <!-- ファールライン -->
-    <line x1="500" y1="850" x2="90" y2="440" stroke="#fff" stroke-width="3" />
-    <line x1="500" y1="850" x2="910" y2="440" stroke="#fff" stroke-width="3" />
-    
-    <!-- マウンド & ピッチャープレート -->
-    <circle cx="500" cy="630" r="28" fill="var(--field-dirt)" />
-    <rect x="492" y="626" width="16" height="8" fill="#fff" />
-    
-    <!-- ホームサークル & 各ベース -->
-    <circle cx="500" cy="850" r="35" fill="var(--field-dirt)" />
-    <polygon points="500,840 510,850 510,860 490,860 490,850" fill="#fff" /> <!-- 本塁 -->
-    <rect x="692" y="622" width="16" height="16" fill="#fff" transform="rotate(45 700 630)" /> <!-- 1塁 -->
-    <rect x="492" y="422" width="16" height="16" fill="#fff" transform="rotate(45 500 430)" /> <!-- 2塁 -->
-    <rect x="292" y="622" width="16" height="16" fill="#fff" transform="rotate(45 300 630)" /> <!-- 3塁 -->
+    <!-- 球場グラウンド描画 -->
+    <!-- 外野背景芝生 -->
+    <path d="M 100 1020 L 100 500 A 700 700 0 0 1 1100 500 L 1100 1020 Z" fill="url(#grass-stripe)" />
+    <!-- 巨大外野フェンス -->
+    <path d="M 85 1030 L 85 480 A 725 725 0 0 1 1115 480 L 1115 1030" fill="none" stroke="#334155" stroke-width="14" />
+    <path d="M 90 1030 L 90 485 A 720 720 0 0 1 1110 485 L 1110 1030" fill="none" stroke="#f59e0b" stroke-width="4" />
 
-    <!-- 描画レイヤー (矢印・線) -->
+    <!-- 内野の土 (大型) -->
+    <path d="M 600 1020 L 260 680 A 480 480 0 0 1 940 680 Z" fill="#b45309" />
+    <!-- 内野ダイヤモンド芝生 -->
+    <polygon points="600,990 840,750 600,510 360,750" fill="url(#grass-stripe)" />
+
+    <!-- ファールライン & ポール -->
+    <line x1="600" y1="1020" x2="90" y2="485" stroke="#ffffff" stroke-width="4" />
+    <line x1="600" y1="1020" x2="1110" y2="485" stroke="#ffffff" stroke-width="4" />
+    <circle cx="90" cy="485" r="8" fill="#f59e0b" />
+    <circle cx="1110" cy="485" r="8" fill="#f59e0b" />
+
+    <!-- マウンド & ピッチャープレート -->
+    <circle cx="600" cy="750" r="36" fill="#b45309" stroke="#92400e" stroke-width="2" />
+    <rect x="588" y="744" width="24" height="10" fill="#ffffff" rx="2" />
+
+    <!-- バッターボックス & ホームベース -->
+    <rect x="540" y="1000" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
+    <rect x="630" y="1000" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
+    <polygon points="600,1010 615,1025 615,1040 585,1040 585,1025" fill="#ffffff" /> <!-- ホームベース -->
+
+    <!-- 各塁ベース -->
+    <rect x="828" y="738" width="24" height="24" fill="#ffffff" transform="rotate(45 840 750)" /> <!-- 1塁 -->
+    <rect x="588" y="498" width="24" height="24" fill="#ffffff" transform="rotate(45 600 510)" /> <!-- 2塁 -->
+    <rect x="348" y="738" width="24" height="24" fill="#ffffff" transform="rotate(45 360 750)" /> <!-- 3塁 -->
+
+    <!-- 描画レイヤー（ペン・レーザー） -->
     <g id="linesLayer"></g>
-    <!-- オブジェクトレイヤー (選手・ボール) -->
+    <!-- オブジェクトレイヤー（大コマ選手・リアルボール） -->
     <g id="objectsLayer"></g>
   </svg>
+</div>
 
-  <!-- アニメーションコントロールパネル -->
-  <div class="panel" id="anim-panel">
-    <button class="btn" onclick="addFrame()">📸 コマ追加</button>
-    <button class="btn" onclick="prevFrame()">◀ 前へ</button>
-    <span class="step-counter" id="step-display">1 / 1</span>
-    <button class="btn" onclick="nextFrame()">次へ ▶</button>
-    <button class="btn btn-success" id="btn-play" onclick="togglePlay()">▶ 再生</button>
-    <button class="btn btn-danger" onclick="clearFrames()">コマ消去</button>
+<!-- 背番号登録モーダル -->
+<div class="modal" id="numberModal">
+  <div class="modal-content">
+    <h3>⚙️ 選手 背番号登録</h3>
+    <div class="modal-grid" id="modalGrid"></div>
+    <button class="btn btn-success" style="width:100%; justify-content:center;" onclick="closeNumberModal()">保存して閉じる</button>
   </div>
 </div>
 
 <script>
-  // 初期選手データ (守備9人、攻撃4人)
+  // 初期守備位置 & 打者
   const defaultPlayers = [
-    { id: 'P', label: '投', num: '1', x: 500, y: 650, color: '#ef4444' },
-    { id: 'C', label: '捕', num: '2', x: 500, y: 880, color: '#ef4444' },
-    { id: '1B', label: '一', num: '3', x: 720, y: 600, color: '#ef4444' },
-    { id: '2B', label: '二', num: '4', x: 610, y: 500, color: '#ef4444' },
-    { id: '3B', label: '三', num: '5', x: 280, y: 600, color: '#ef4444' },
-    { id: 'SS', label: '遊', num: '6', x: 390, y: 500, color: '#ef4444' },
-    { id: 'LF', label: '左', num: '7', x: 250, y: 320, color: '#ef4444' },
-    { id: 'CF', label: '中', num: '8', x: 500, y: 250, color: '#ef4444' },
-    { id: 'RF', label: '右', num: '9', x: 750, y: 320, color: '#ef4444' },
-    { id: 'B', label: '打', num: 'D', x: 450, y: 850, color: '#3b82f6' },
-    { id: 'R1', label: '走1', num: 'R1', x: 720, y: 640, color: '#eab308' },
-    { id: 'R2', label: '走2', num: 'R2', x: 520, y: 410, color: '#eab308' },
-    { id: 'R3', label: '走3', num: 'R3', x: 280, y: 640, color: '#eab308' },
+    { id: 'P', label: '投', num: '1', x: 600, y: 780, color: '#ef4444' },
+    { id: 'C', label: '捕', num: '2', x: 600, y: 1070, color: '#ef4444' },
+    { id: '1B', label: '一', num: '3', x: 870, y: 710, color: '#ef4444' },
+    { id: '2B', label: '二', num: '4', x: 730, y: 590, color: '#ef4444' },
+    { id: '3B', label: '三', num: '5', x: 330, y: 710, color: '#ef4444' },
+    { id: 'SS', label: '遊', num: '6', x: 470, y: 590, color: '#ef4444' },
+    { id: 'LF', label: '左', num: '7', x: 280, y: 380, color: '#ef4444' },
+    { id: 'CF', label: '中', num: '8', x: 600, y: 300, color: '#ef4444' },
+    { id: 'RF', label: '右', num: '9', x: 920, y: 380, color: '#ef4444' },
+    { id: 'B', label: '打', num: '10', x: 530, y: 1020, color: '#3b82f6' },
   ];
 
   let players = JSON.parse(JSON.stringify(defaultPlayers));
-  let ball = { x: 500, y: 670 };
+  let runners = []; // 動的走者（最大3人）
+  let ball = { x: 600, y: 800 };
+  
   let currentTool = 'select';
-  let labelMode = 'label'; // 'label' or 'num'
+  let currentColor = '#ffffff';
+  let labelMode = 'label';
   let lines = [];
+  let currentLine = null;
   let isDragging = false;
   let dragTarget = null;
-  let startPt = null;
-
-  // アニメーションコマ管理
-  let frames = [];
-  let currentFrameIdx = 0;
-  let isPlaying = false;
-  let playTimer = null;
 
   const svg = document.getElementById('svgField');
   const linesLayer = document.getElementById('linesLayer');
@@ -193,56 +181,64 @@
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     return {
-      x: ((clientX - rect.left) / rect.width) * 1000,
-      y: ((clientY - rect.top) / rect.height) * 1000
+      x: ((clientX - rect.left) / rect.width) * 1200,
+      y: ((clientY - rect.top) / rect.height) * 1200
     };
   }
 
-  // レンダリング (選手＆ボール)
+  // 画面描画 (選手コマ & リアルボール)
   function renderObjects() {
     objectsLayer.innerHTML = '';
 
-    // ボール描画
+    // リアル野球ボール描画 (赤縫い目付き)
     const ballG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     ballG.innerHTML = `
-      <circle cx="${ball.x}" cy="${ball.y}" r="12" fill="#fff" stroke="#ef4444" stroke-width="2" style="cursor:grab; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));"/>
-      <path d="M ${ball.x-6} ${ball.y-6} A 8 8 0 0 1 ${ball.x+6} ${ball.y+6}" fill="none" stroke="#ef4444" stroke-width="1.5"/>
+      <circle cx="${ball.x}" cy="${ball.y}" r="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" style="cursor:grab; filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.6));"/>
+      <path d="M ${ball.x-10} ${ball.y-10} A 12 12 0 0 1 ${ball.x-10} ${ball.y+10}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,3"/>
+      <path d="M ${ball.x+10} ${ball.y-10} A 12 12 0 0 0 ${ball.x+10} ${ball.y+10}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,3"/>
     `;
     ballG.onmousedown = ballG.ontouchstart = (e) => startDrag(e, 'ball');
     objectsLayer.appendChild(ballG);
 
-    // 選手描画
-    players.forEach(p => {
-      if (p.hidden) return;
+    // 全選手（守備・打者・追加走者）描画 (大きめサイズ: 半径30px)
+    const allPlayers = [...players, ...runners];
+    allPlayers.forEach(p => {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       const textVis = labelMode === 'label' ? p.label : p.num;
       g.innerHTML = `
-        <circle cx="${p.x}" cy="${p.y}" r="22" fill="${p.color}" stroke="#fff" stroke-width="3" style="cursor:grab; filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.4));"/>
-        <text x="${p.x}" y="${p.y + 7}" text-anchor="middle" fill="#fff" font-size="18" font-weight="bold" style="pointer-events:none;">${textVis}</text>
+        <circle cx="${p.x}" cy="${p.y}" r="30" fill="${p.color}" stroke="#ffffff" stroke-width="3.5" style="cursor:grab; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));"/>
+        <text x="${p.x}" y="${p.y + 9}" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="900" style="pointer-events:none; font-family:sans-serif;">${textVis}</text>
       `;
       g.onmousedown = g.ontouchstart = (e) => startDrag(e, p.id);
       objectsLayer.appendChild(g);
     });
   }
 
-  // レンダリング (矢印・線)
+  // 線・レーザー描画
   function renderLines() {
     linesLayer.innerHTML = '';
-    lines.forEach((l, idx) => {
+    const now = Date.now();
+    lines = lines.filter(l => !l.isLaser || (now - l.createdAt < 1500));
+
+    lines.forEach(l => {
+      if (l.points.length < 2) return;
+      const d = l.points.reduce((acc, p, i) => `${acc} ${i===0?'M':'L'} ${p.x} ${p.y}`, '');
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', `M ${l.x1} ${l.y1} L ${l.x2} ${l.y2}`);
+      path.setAttribute('d', d);
       path.setAttribute('stroke', l.color);
-      path.setAttribute('stroke-width', '5');
+      path.setAttribute('stroke-width', l.isLaser ? '4' : '3');
       path.setAttribute('fill', 'none');
-      if (l.dash) path.setAttribute('stroke-dasharray', l.dash);
-      path.setAttribute('marker-end', `url(#${l.marker})`);
-      path.style.cursor = 'pointer';
-      path.onclick = () => { if(currentTool === 'eraser') { lines.splice(idx, 1); renderLines(); } };
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-linejoin', 'round');
+      if (l.isLaser) {
+        path.setAttribute('filter', 'url(#laser-glow)');
+        path.setAttribute('opacity', '0.9');
+      }
       linesLayer.appendChild(path);
     });
   }
 
-  // ドラッグ操作関連
+  // ドラッグ・操作ロジック
   function startDrag(e, target) {
     if (currentTool !== 'select') return;
     isDragging = true;
@@ -250,10 +246,16 @@
   }
 
   svg.onmousedown = svg.ontouchstart = (e) => {
+    isDragging = true;
     const pt = getSVGPoint(e);
-    startPt = pt;
-    if (currentTool !== 'select' && currentTool !== 'eraser') {
-      isDragging = true;
+    if (currentTool === 'pen' || currentTool === 'laser') {
+      currentLine = {
+        color: currentTool === 'laser' ? '#ff0033' : currentColor,
+        isLaser: currentTool === 'laser',
+        createdAt: Date.now(),
+        points: [pt]
+      };
+      lines.push(currentLine);
     }
   };
 
@@ -265,35 +267,63 @@
       if (dragTarget === 'ball') {
         ball = pt;
       } else if (dragTarget) {
-        const p = players.find(x => x.id === dragTarget);
+        const p = [...players, ...runners].find(x => x.id === dragTarget);
         if (p) { p.x = pt.x; p.y = pt.y; }
       }
       renderObjects();
-    }
-  };
-
-  svg.onmouseup = svg.ontouchend = (e) => {
-    if (isDragging && currentTool !== 'select' && currentTool !== 'eraser' && startPt) {
-      const endPt = getSVGPoint(e.changedTouches ? e.changedTouches[0] : e);
-      let color = '#ef4444', marker = 'arrow-red', dash = '';
-      
-      if (currentTool === 'arrow-run') { color = '#ef4444'; marker = 'arrow-red'; dash = '8,6'; }
-      else if (currentTool === 'arrow-pass') { color = '#3b82f6'; marker = 'arrow-blue'; dash = ''; }
-      else if (currentTool === 'arrow-hit') { color = '#eab308'; marker = 'arrow-yellow'; dash = '3,3'; }
-
-      lines.push({ x1: startPt.x, y1: startPt.y, x2: endPt.x, y2: endPt.y, color, marker, dash });
+    } else if (currentTool === 'pen' || currentTool === 'laser') {
+      if (currentLine) {
+        currentLine.points.push(pt);
+        renderLines();
+      }
+    } else if (currentTool === 'eraser') {
+      lines = lines.filter(l => !l.points.some(p => Math.hypot(p.x - pt.x, p.y - pt.y) < 18));
       renderLines();
     }
-    isDragging = false;
-    dragTarget = null;
-    startPt = null;
   };
 
-  // ツール設定
+  svg.onmouseup = svg.ontouchend = () => {
+    isDragging = false;
+    dragTarget = null;
+    currentLine = null;
+  };
+
+  // 走者追加（最大3人）
+  function addRunner() {
+    if (runners.length >= 3) return;
+    const idx = runners.length + 1;
+    const pos = idx === 1 ? { x: 860, y: 770 } : idx === 2 ? { x: 600, y: 460 } : { x: 340, y: 770 };
+    runners.push({
+      id: `R${idx}`,
+      label: `走${idx}`,
+      num: `R${idx}`,
+      x: pos.x,
+      y: pos.y,
+      color: '#eab308'
+    });
+    renderObjects();
+  }
+
+  // 走者削除
+  function removeRunner() {
+    if (runners.length > 0) {
+      runners.pop();
+      renderObjects();
+    }
+  }
+
+  // ツール変更
   function setTool(tool) {
     currentTool = tool;
     document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`tool-${tool}`).classList.add('active');
+  }
+
+  // カラー選択
+  function setColor(color, el) {
+    currentColor = color;
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+    el.classList.add('selected');
   }
 
   // 表示モード切替
@@ -303,92 +333,33 @@
     renderObjects();
   }
 
-  // ナイターモード切替
-  function toggleNightMode() {
-    document.body.classList.toggle('night-mode');
+  // 背番号登録モーダル
+  function openNumberModal() {
+    const grid = document.getElementById('modalGrid');
+    grid.innerHTML = '';
+    [...players].forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'modal-row';
+      row.innerHTML = `<label>${p.label}:</label><input type="text" id="input-num-${p.id}" value="${p.num}" maxLength="3"/>`;
+      grid.appendChild(row);
+    });
+    document.getElementById('numberModal').style.display = 'flex';
   }
 
-  // テンプレート (シフト) 適用
-  function applyTemplate(type) {
-    // ランナー表示設定の解除
-    players.forEach(p => p.hidden = false);
-
-    if (type === 'def-standard') {
-      players.find(p=>p.id==='1B').x = 720; players.find(p=>p.id==='1B').y = 600;
-      players.find(p=>p.id==='2B').x = 610; players.find(p=>p.id==='2B').y = 500;
-      players.find(p=>p.id==='SS').x = 390; players.find(p=>p.id==='SS').y = 500;
-      players.find(p=>p.id==='3B').x = 280; players.find(p=>p.id==='3B').y = 600;
-    } else if (type === 'def-infield-in') {
-      players.find(p=>p.id==='1B').x = 660; players.find(p=>p.id==='1B').y = 640;
-      players.find(p=>p.id==='2B').x = 580; players.find(p=>p.id==='2B').y = 570;
-      players.find(p=>p.id==='SS').x = 420; players.find(p=>p.id==='SS').y = 570;
-      players.find(p=>p.id==='3B').x = 340; players.find(p=>p.id==='3B').y = 640;
-    } else if (type === 'def-double-play') {
-      players.find(p=>p.id==='2B').x = 580; players.find(p=>p.id==='2B').y = 520;
-      players.find(p=>p.id==='SS').x = 420; players.find(p=>p.id==='SS').y = 520;
-    } else if (type === 'def-bunt') {
-      players.find(p=>p.id==='1B').x = 600; players.find(p=>p.id==='1B').y = 700;
-      players.find(p=>p.id==='3B').x = 400; players.find(p=>p.id==='3B').y = 700;
-    } else if (type === 'run-none') {
-      ['R1', 'R2', 'R3'].forEach(id => players.find(p=>p.id===id).hidden = true);
-    } else if (type === 'run-1b') {
-      players.find(p=>p.id==='R2').hidden = true; players.find(p=>p.id==='R3').hidden = true;
-    }
+  function closeNumberModal() {
+    players.forEach(p => {
+      const input = document.getElementById(`input-num-${p.id}`);
+      if (input) p.num = input.value;
+    });
+    document.getElementById('numberModal').style.display = 'none';
     renderObjects();
   }
 
-  // アニメーションコマ追加・再生
-  function addFrame() {
-    frames.push({
-      players: JSON.parse(JSON.stringify(players)),
-      ball: { ...ball },
-      lines: JSON.parse(JSON.stringify(lines))
-    });
-    currentFrameIdx = frames.length - 1;
-    updateStepDisplay();
-  }
-
-  function updateStepDisplay() {
-    document.getElementById('step-display').innerText = `${frames.length === 0 ? 0 : currentFrameIdx + 1} / ${frames.length}`;
-  }
-
-  function loadFrame(idx) {
-    if (frames[idx]) {
-      players = JSON.parse(JSON.stringify(frames[idx].players));
-      ball = { ...frames[idx].ball };
-      lines = JSON.parse(JSON.stringify(frames[idx].lines));
-      renderObjects();
-      renderLines();
-      updateStepDisplay();
-    }
-  }
-
-  function prevFrame() { if (currentFrameIdx > 0) { currentFrameIdx--; loadFrame(currentFrameIdx); } }
-  function nextFrame() { if (currentFrameIdx < frames.length - 1) { currentFrameIdx++; loadFrame(currentFrameIdx); } }
-
-  function togglePlay() {
-    isPlaying = !isPlaying;
-    const btn = document.getElementById('btn-play');
-    if (isPlaying) {
-      btn.innerText = '⏸ 停止';
-      playTimer = setInterval(() => {
-        if (currentFrameIdx >= frames.length - 1) currentFrameIdx = 0;
-        else currentFrameIdx++;
-        loadFrame(currentFrameIdx);
-      }, 800);
-    } else {
-      btn.innerText = '▶ 再生';
-      clearInterval(playTimer);
-    }
-  }
-
-  function clearFrames() { frames = []; currentFrameIdx = 0; updateStepDisplay(); }
-
-  // PNG画像として出力
+  // PNG画像保存
   function exportPNG() {
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement('canvas');
-    canvas.width = 1000; canvas.height = 1000;
+    canvas.width = 1200; canvas.height = 1200;
     const ctx = canvas.getContext('2d');
     const img = new Image();
     img.onload = () => {
@@ -404,16 +375,18 @@
   // リセット
   function resetAll() {
     players = JSON.parse(JSON.stringify(defaultPlayers));
-    ball = { x: 500, y: 670 };
+    runners = [];
+    ball = { x: 600, y: 800 };
     lines = [];
-    clearFrames();
     renderObjects();
     renderLines();
   }
 
-  // 初期化実行
+  // レーザータイマー監視
+  setInterval(renderLines, 80);
+
+  // 初回描画
   renderObjects();
-  addFrame();
 </script>
 </body>
 </html>
