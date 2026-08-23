@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>野球デジタル作戦ボード PRO</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body { font-family: sans-serif; background: #1a202c; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    header { background: #2d3748; padding: 10px 15px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; border-bottom: 2px solid #4a5568; z-index: 10; }
+    .btn { background: #3182ce; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .btn.active { background: #e53e3e; font-weight: bold; }
+    .btn-group { display: flex; background: #1a202c; padding: 2px; border-radius: 4px; }
+    .color-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+    .color-dot.selected { border-color: #fff; transform: scale(1.1); }
+    #field-container { flex: 1; position: relative; background: #276749; width: 100vw; height: 100%; }
+    svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+    .panel { position: absolute; bottom: 15px; right: 15px; background: rgba(26, 32, 44, 0.9); padding: 12px; border-radius: 8px; border: 1px solid #4a5568; width: 220px; }
+    input, select { background: #2d3748; color: #fff; border: 1px solid #4a5568; padding: 5px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <b style="color: #63b3ed;">PRO 作戦ボード</b>
+  <div class="btn-group">
+    <button class="btn active" id="tool-select" onclick="setTool('select')">移動</button>
+    <button class="btn" id="tool-pen" onclick="setTool('pen')">ペン</button>
+    <button class="btn" id="tool-laser" onclick="setTool('laser')">レーザー（消失）</button>
+    <button class="btn" id="tool-eraser" onclick="setTool('eraser')">消しゴム</button>
+  </div>
+  <div id="colors" style="display: flex; gap: 6px;">
+    <div class="color-dot selected" style="background:#fff" onclick="setColor('#fff', this)"></div>
+    <div class="color-dot" style="background:#e53e3e" onclick="setColor('#e53e3e', this)"></div>
+    <div class="color-dot" style="background:#ecc94b" onclick="setColor('#ecc94b', this)"></div>
+    <div class="color-dot" style="background:#48bb78" onclick="setColor('#48bb78', this)"></div>
+  </div>
+  <select onchange="applyScenario(this.value)">
+    <option value="all">全選手配置</option>
+    <option value="no_runner">走者なし</option>
+    <option value="runner_1b">ランナー1塁</option>
+  </select>
+  <button class="btn" id="rec-btn" onclick="toggleRecord()" style="background:#38a169;">● 録画開始</button>
+  <button class="btn" onclick="playRecord()" style="background:#d69e2e;">再生</button>
+  <button class="btn" onclick="clearLines()" style="background:#718096;">全消去</button>
+</header>
+
+<div id="field-container">
+  <svg id="svgField" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <!-- グラウンド描画 -->
+    <polygon points="50,88 82,58 50,28 18,58" fill="#c59b6c" stroke="#fff" stroke-width="0.3" />
+    <polygon points="50,88 72,58 50,38 28,58" fill="#276749" />
+    <line x1="50" y1="88" x2="2" y2="10" stroke="#fff" stroke-width="0.4" />
+    <line x1="50" y1="88" x2="98" y2="10" stroke="#fff" stroke-width="0.4" />
+    <!-- ベース -->
+    <rect x="49" y="86.5" width="2" height="2" fill="#fff" transform="rotate(45 50 87.5)" />
+    <rect x="71" y="57" width="2" height="2" fill="#fff" transform="rotate(45 72 58)" />
+    <rect x="49" y="37" width="2" height="2" fill="#fff" transform="rotate(45 50 38)" />
+    <rect x="27" y="57" width="2" height="2" fill="#fff" transform="rotate(45 28 58)" />
+
+    <!-- 描画レイヤー -->
+    <g id="linesLayer"></g>
+    <!-- ボール ＆ 選手レイヤー -->
+    <g id="objectsLayer"></g>
+  </svg>
+
+  <div class="panel">
+    <h4 style="font-size:12px; margin-bottom:6px; color:#63b3ed;">戦術保存ノート</h4>
+    <div style="display:flex; gap:4px; margin-bottom:8px;">
+      <input type="text" id="playName" placeholder="戦術名..." style="flex:1;">
+      <button class="btn" onclick="savePlay()">保存</button>
+    </div>
+    <div id="savedList" style="max-height:80px; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<script>
+  const defaultPlayers = [
+    { id: 'P', label: '1 投', x: 50, y: 58, color: '#e53e3e', role: 'def' },
+    { id: 'C', label: '2 捕', x: 50, y: 88, color: '#e53e3e', role: 'def' },
+    { id: '1B', label: '3 一', x: 70, y: 58, color: '#3182ce', role: 'def' },
+    { id: '2B', label: '4 二', x: 60, y: 40, color: '#3182ce', role: 'def' },
+    { id: '3B', label: '5 三', x: 30, y: 58, color: '#3182ce', role: 'def' },
+    { id: 'SS', label: '6 遊', x: 40, y: 40, color: '#3182ce', role: 'def' },
+    { id: 'LF', label: '7 左', x: 20, y: 22, color: '#3182ce', role: 'def' },
+    { id: 'CF', label: '8 中', x: 50, y: 15, color: '#3182ce', role: 'def' },
+    { id: 'RF', label: '9 右', x: 80, y: 22, color: '#3182ce', role: 'def' },
+    { id: 'R1', label: '走1', x: 72, y: 55, color: '#ecc94b', role: 'off' },
+    { id: 'B', label: '打者', x: 45, y: 85, color: '#ecc94b', role: 'off' },
+  ];
+
+  let players = JSON.parse(JSON.stringify(defaultPlayers));
+  let ball = { x: 50, y: 60 };
+  let currentTool = 'select';
+  let currentColor = '#ffffff';
+  let lines = [];
+  let currentLine = null;
+  let isDragging = false;
+  let dragTarget = null;
+  let isRecording = false;
+  let recordedFrames = [];
+
+  const svg = document.getElementById('svgField');
+  const linesLayer = document.getElementById('linesLayer');
+  const objectsLayer = document.getElementById('objectsLayer');
+
+  function getSVGPoint(e) {
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100
+    };
+  }
+
+  function renderObjects() {
+    objectsLayer.innerHTML = '';
+    // ボール
+    const ballG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    ballG.innerHTML = `<circle cx="${ball.x}" cy="${ball.y}" r="1.5" fill="#fff" stroke="#e53e3e" stroke-width="0.4" style="cursor:grab;"/>`;
+    ballG.onmousedown = (e) => { if(currentTool==='select'){ isDragging = true; dragTarget = 'ball'; } };
+    objectsLayer.appendChild(ballG);
+
+    // 選手
+    players.forEach(p => {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.innerHTML = `
+        <circle cx="${p.x}" cy="${p.y}" r="2.8" fill="${p.color}" stroke="#fff" stroke-width="0.5" style="cursor:grab;"/>
+        <text x="${p.x}" y="${p.y + 0.8}" text-anchor="middle" fill="#fff" font-size="1.8" font-weight="bold" style="pointer-events:none;">${p.label}</text>
+      `;
+      g.onmousedown = (e) => { if(currentTool==='select'){ isDragging = true; dragTarget = p.id; } };
+      objectsLayer.appendChild(g);
+    });
+  }
+
+  function renderLines() {
+    linesLayer.innerHTML = '';
+    const now = Date.now();
+    lines = lines.filter(l => !l.isLaser || (now - l.time < 1500));
+
+    lines.forEach(l => {
+      if(l.points.length < 2) return;
+      const d = l.points.reduce((acc, p, i) => `${acc} ${i===0?'M':'L'} ${p.x} ${p.y}`, '');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', l.color);
+      path.setAttribute('stroke-width', l.isLaser ? '1.2' : '0.8');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke-linecap', 'round');
+      if(l.isLaser) path.setAttribute('opacity', '0.7');
+      linesLayer.appendChild(path);
+    });
+  }
+
+  svg.onmousedown = (e) => {
+    if(currentTool === 'select') return;
+    isDragging = true;
+    const pt = getSVGPoint(e);
+    if(currentTool === 'pen' || currentTool === 'laser') {
+      currentLine = { color: currentTool==='laser' ? '#00ffcc' : currentColor, isLaser: currentTool==='laser', time: Date.now(), points: [pt] };
+      lines.push(currentLine);
+    }
+  };
+
+  svg.onmousemove = (e) => {
+    if(!isDragging) return;
+    const pt = getSVGPoint(e);
+
+    if(currentTool === 'select') {
+      if(dragTarget === 'ball') ball = pt;
+      else if(dragTarget) {
+        const p = players.find(x => x.id === dragTarget);
+        if(p) { p.x = pt.x; p.y = pt.y; }
+      }
+      renderObjects();
+    } else if(currentTool === 'pen' || currentTool === 'laser') {
+      if(currentLine) currentLine.points.push(pt);
+      renderLines();
+    } else if(currentTool === 'eraser') {
+      lines = lines.filter(l => !l.points.some(p => Math.hypot(p.x - pt.x, p.y - pt.y) < 3));
+      renderLines();
+    }
+
+    if(isRecording) {
+      recordedFrames.push({ players: JSON.parse(JSON.stringify(players)), ball: {...ball} });
+    }
+  };
+
+  svg.onmouseup = () => { isDragging = false; dragTarget = null; currentLine = null; };
+
+  function setTool(t) {
+    currentTool = t;
+    document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`tool-${t}`).classList.add('active');
+  }
+
+  function setColor(c, el) {
+    currentColor = c;
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function clearLines() { lines = []; renderLines(); }
+
+  function applyScenario(type) {
+    if(type === 'no_runner') players = defaultPlayers.filter(p => p.role === 'def' || p.id === 'B');
+    else if(type === 'runner_1b') players = defaultPlayers.filter(p => p.role === 'def' || p.id === 'B' || p.id === 'R1');
+    else players = JSON.parse(JSON.stringify(defaultPlayers));
+    renderObjects();
+  }
+
+  function toggleRecord() {
+    isRecording = !isRecording;
+    const btn = document.getElementById('rec-btn');
+    if(isRecording) { recordedFrames = []; btn.innerText = '■ 録画停止'; btn.style.background = '#e53e3e'; }
+    else { btn.innerText = '● 録画開始'; btn.style.background = '#38a169'; }
+  }
+
+  function playRecord() {
+    if(recordedFrames.length === 0) return;
+    let i = 0;
+    const timer = setInterval(() => {
+      if(i >= recordedFrames.length) clearInterval(timer);
+      else {
+        players = recordedFrames[i].players;
+        ball = recordedFrames[i].ball;
+        renderObjects();
+        i++;
+      }
+    }, 40);
+  }
+
+  function savePlay() {
+    const name = document.getElementById('playName').value;
+    if(!name) return;
+    const saves = JSON.parse(localStorage.getItem('baseball_saves') || '[]');
+    saves.push({ name, players, ball });
+    localStorage.setItem('baseball_saves', JSON.stringify(saves));
+    document.getElementById('playName').value = '';
+    loadSaves();
+  }
+
+  function loadSaves() {
+    const saves = JSON.parse(localStorage.getItem('baseball_saves') || '[]');
+    const list = document.getElementById('savedList');
+    list.innerHTML = '';
+    saves.forEach(s => {
+      const item = document.createElement('div');
+      item.style.cssText = 'padding:4px; background:#2d3748; margin-top:4px; border-radius:4px; cursor:pointer; font-size:11px;';
+      item.innerText = `★ ${s.name}`;
+      item.onclick = () => { players = s.players; ball = s.ball; renderObjects(); };
+      list.appendChild(item);
+    });
+  }
+
+  setInterval(renderLines, 100);
+  renderObjects();
+  loadSaves();
+</script>
+</body>
+</html>
