@@ -3,291 +3,141 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>野球デジタル作戦ボード PRO for iPad</title>
+  <title>野球デジタル作戦ボード PRO v3 (Complete Edition)</title>
   <style>
-    /* --- 基本スタイル & Apple Glassmorphic テーマ --- */
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
-    
     body {
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-      background: #090d16;
-      color: #f8fafc;
-      height: 100vh;
-      width: 100vw;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      background: #090d16; color: #f8fafc; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden;
     }
 
-    /* メインタブバー */
+    /* ナビゲーションバー (ボタン高さ48px推進規格) */
     nav {
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      padding: 0 16px;
-      z-index: 30;
-      height: 52px;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
+      background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; padding: 0 16px; height: 56px; align-items: center; gap: 8px; flex-shrink: 0; z-index: 40;
     }
-
     .nav-btn {
-      background: transparent;
-      color: #94a3b8;
-      border: none;
-      padding: 0 20px;
-      height: 40px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      background: transparent; color: #94a3b8; border: none; padding: 0 16px; height: 48px; font-size: 15px; font-weight: 600;
+      cursor: pointer; border-radius: 10px; transition: all 0.2s; display: flex; align-items: center; gap: 6px;
     }
-    .nav-btn:hover { color: #f8fafc; background: rgba(255,255,255,0.05); }
     .nav-btn.active { color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); }
 
-    /* ページ構造 */
-    .page { display: none; flex: 1; height: calc(100vh - 52px); flex-direction: column; overflow: hidden; position: relative; }
+    .page { display: none; flex: 1; height: calc(100vh - 56px); flex-direction: column; overflow: hidden; position: relative; }
     .page.active { display: flex; }
 
-    /* iPad最適化 48px最小タップサイズヘッダー */
+    /* ヘッダー */
     header {
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      padding: 8px 16px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      z-index: 20;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      flex-shrink: 0;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px);
+      padding: 6px 12px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      z-index: 30; flex-shrink: 0; overflow-x: auto;
     }
+    .header-tab-bar { display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 12px; }
+    .header-tab {
+      background: transparent; color: #94a3b8; border: none; padding: 8px 14px; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer;
+    }
+    .header-tab.active { background: #0284c7; color: #fff; }
+    .header-panel { display: none; align-items: center; gap: 8px; }
+    .header-panel.active { display: flex; }
 
-    /* iPadに最適な48px以上のタッチターゲット */
+    /* Touch最適化ボタン (高さ48px対応) */
     .btn {
-      background: rgba(30, 41, 59, 0.8);
-      color: #f8fafc;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      min-height: 48px;
-      min-width: 48px;
-      padding: 0 16px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      background: rgba(30, 41, 59, 0.8); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15);
+      min-height: 48px; min-width: 48px; padding: 0 14px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 600;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s; box-shadow: 0 2px 6px rgba(0,0,0,0.25);
     }
-    .btn:active { transform: scale(0.96); opacity: 0.8; }
-    .btn.active { background: #0284c7; border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
-    .btn-danger { background: rgba(153, 27, 27, 0.8); border-color: rgba(239, 68, 68, 0.4); }
-    .btn-success { background: rgba(22, 101, 52, 0.8); border-color: rgba(34, 197, 94, 0.4); }
-    .btn-recording { background: #dc2626; border-color: #f87171; animation: pulse 1.5s infinite; }
+    .btn:active { transform: scale(0.95); }
+    .btn.active { background: #0284c7; border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.5); }
+    .btn-danger { background: rgba(153, 27, 27, 0.85); border-color: rgba(239, 68, 68, 0.5); }
+    .btn-success { background: rgba(22, 101, 52, 0.85); border-color: rgba(34, 197, 94, 0.5); }
+    .btn-purple { background: rgba(126, 34, 206, 0.85); border-color: rgba(168, 85, 247, 0.5); }
+    .btn-sm { min-height: 36px; min-width: 36px; padding: 0 10px; font-size: 12px; border-radius: 8px; }
 
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
+    /* カラーピッカー（黒・紫を追加） */
+    .color-picker { display: flex; align-items: center; gap: 6px; padding: 0 6px; }
+    .color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+    .color-dot.selected { border-color: #ffffff; transform: scale(1.15); box-shadow: 0 0 8px rgba(255,255,255,0.6); }
+
+    /* AI作戦バッジ提案エリア */
+    .ai-suggestion-bar {
+      position: absolute; top: 60px; left: 16px; z-index: 25; display: flex; align-items: center; gap: 8px;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); padding: 8px 14px; border-radius: 14px; border: 1px solid rgba(168, 85, 247, 0.4);
     }
+    .ai-badge { background: linear-gradient(135deg, #a855f7, #6366f1); color: #fff; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 10px; }
+    .ai-chip { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+    .ai-chip:hover { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; }
 
-    .header-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(15, 23, 42, 0.6);
-      padding: 4px 6px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .group-label {
-      font-size: 11px;
-      color: #94a3b8;
-      font-weight: bold;
-      padding: 0 6px;
-      text-transform: uppercase;
-    }
-
-    .color-picker { display: flex; align-items: center; gap: 8px; padding: 0 6px; }
-    .color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform 0.2s; }
-    .color-dot.selected { border-color: #ffffff; transform: scale(1.25); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
-
-    /* 画面右上 常時表示 スコアボード (描画ボタンとの重なりを防ぐため右上に移動) */
+    /* スコアボード */
     .scoreboard-overlay {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      left: auto;
-      z-index: 25;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 16px;
-      padding: 10px 14px;
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      position: absolute; top: 60px; right: 16px; z-index: 25;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 8px 12px;
+      display: flex; gap: 12px; align-items: center; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
-    .score-box { display: flex; flex-direction: column; align-items: center; }
+    .score-ctrl-group { display: flex; flex-direction: column; align-items: center; }
     .score-title { font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 2px; }
-    .score-val { font-size: 20px; font-weight: 800; color: #38bdf8; cursor: pointer; }
+    .score-row { display: flex; align-items: center; gap: 4px; }
+    .score-val { font-size: 18px; font-weight: 800; color: #38bdf8; min-width: 20px; text-align: center; }
 
-    .bso-container { display: flex; flex-direction: column; gap: 3px; }
-    .bso-row { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: bold; }
-    .bso-label { width: 12px; }
-    .bso-dots { display: flex; gap: 3px; }
-    .bso-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
-    .bso-dot.b-active { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
-    .bso-dot.s-active { background: #eab308; box-shadow: 0 0 6px #eab308; }
-    .bso-dot.o-active { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+    .out-dots { display: flex; gap: 4px; }
+    .out-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.3); }
+    .out-dot.o-active { background: #ef4444; border-color: #f87171; box-shadow: 0 0 6px #ef4444; }
 
-    /* グラウンド表示とSVGズーム対応コンテナ */
-    #field-container {
-      flex: 1;
-      position: relative;
-      width: 100%;
-      height: 100%;
-      background: #040914;
-      overflow: hidden;
-      touch-action: none;
-    }
+    /* グラウンド */
+    #field-container { flex: 1; position: relative; width: 100%; height: 100%; background: #040914; overflow: hidden; touch-action: none; }
     svg { width: 100%; height: 100%; display: block; transform-origin: 0 0; }
 
-    /* 画面下部シフト選択 & ツール切り替えバー */
+    .zoom-controls {
+      position: absolute; bottom: 20px; left: 20px; z-index: 25; display: flex; gap: 6px; align-items: center;
+      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); padding: 4px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+    }
+
     .field-bottom-bar {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 25;
-      display: flex;
-      gap: 8px;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 25;
+      display: flex; gap: 8px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px);
+      padding: 6px 12px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
-    /* ズームインジケーター */
-    .zoom-indicator {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      z-index: 25;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(10px);
-      padding: 6px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 12px;
-      font-weight: bold;
-      color: #94a3b8;
-    }
-
-    /* iPad用スライド式 Bottom Sheet（下部パネル） */
+    /* Bottom Sheet（メモ領域拡張） */
     .bottom-sheet {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 70vh;
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border-top: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 24px 24px 0 0;
-      z-index: 100;
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
-      padding: 0 20px 20px 20px;
+      position: fixed; bottom: 0; left: 0; right: 0; height: 80vh;
+      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(25px); border-top: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px 20px 0 0; z-index: 100; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex; flex-direction: column; padding: 0 20px 20px 20px;
     }
     .bottom-sheet.open { transform: translateY(0); }
-    .sheet-handle {
-      width: 48px;
-      height: 5px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 3px;
-      margin: 12px auto 16px auto;
-      cursor: pointer;
-    }
-    .sheet-content { flex: 1; overflow-y: auto; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+    .sheet-handle { width: 40px; height: 5px; background: rgba(255, 255, 255, 0.3); border-radius: 3px; margin: 10px auto 14px auto; cursor: pointer; }
+    .sheet-content { flex: 1; overflow-y: auto; display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
 
-    /* 作戦ライブラリ カードUI */
-    .library-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 16px;
-      padding-top: 10px;
-    }
-    .play-card {
-      background: rgba(30, 41, 59, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-    }
-    .play-card:hover { transform: translateY(-4px); border-color: #38bdf8; }
-    .play-card img { width: 100%; height: 120px; object-fit: cover; background: #040914; }
-    .play-card-body { padding: 10px; }
-    .play-card-title { font-size: 14px; font-weight: bold; color: #f8fafc; margin-bottom: 4px; }
-    .play-card-meta { font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
-    .play-card-fav { position: absolute; top: 8px; right: 8px; font-size: 18px; color: #eab308; }
+    /* ライブラリ */
+    .library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; padding-top: 8px; }
+    .play-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; overflow: hidden; cursor: pointer; }
+    .play-card img { width: 100%; height: 100px; object-fit: cover; background: #040914; }
+    .play-card-body { padding: 8px; }
+    .play-card-title { font-size: 13px; font-weight: bold; color: #f8fafc; margin-bottom: 2px; }
+    .play-card-actions { display: flex; gap: 4px; margin-top: 6px; }
 
     /* サブページ */
-    .container-page { flex: 1; padding: 24px; overflow-y: auto; max-width: 1100px; margin: 0 auto; width: 100%; }
-    .card {
-      background: rgba(30, 41, 59, 0.6);
-      backdrop-filter: blur(16px);
-      border-radius: 18px;
-      padding: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      margin-bottom: 20px;
-    }
-    .card h3 { font-size: 16px; color: #38bdf8; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-    th, td { padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+    .container-page { flex: 1; padding: 20px; overflow-y: auto; max-width: 1000px; margin: 0 auto; width: 100%; }
+    .card { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(16px); border-radius: 14px; padding: 16px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 16px; }
+    .card h3 { font-size: 15px; color: #38bdf8; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 10px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; }
     th { color: #94a3b8; background: rgba(15, 23, 42, 0.4); }
-    select, input[type="text"] {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #fff;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      height: 40px;
-    }
+    select, input[type="text"] { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
 
-    /* 印刷用テンプレート */
+    /* Drag & Drop 行スタイル */
+    tr.draggable-row { cursor: grab; }
+    tr.draggable-row.dragging { opacity: 0.4; background: rgba(56, 189, 248, 0.2); }
+
+    /* 監督用1枚シート PDF印刷 */
     @media print {
       body * { visibility: hidden; }
-      #pdf-order-sheet, #pdf-order-sheet * { visibility: visible; }
-      #pdf-order-sheet { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; color: #000; background: #fff; }
-      .order-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-      .order-table th, .order-table td { border: 2px solid #000; padding: 8px; text-align: center; font-size: 15px; color: #000; }
-      .order-table th { background: #f0f0f0; }
+      #pdf-director-sheet, #pdf-director-sheet * { visibility: visible; }
+      #pdf-director-sheet { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; color: #000; background: #fff; font-family: sans-serif; }
+      .pdf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
+      .pdf-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+      .pdf-table th, .pdf-table td { border: 1px solid #000; padding: 6px; font-size: 12px; text-align: center; color: #000; }
+      .pdf-board-img { width: 100%; border: 1px solid #000; border-radius: 4px; }
     }
   </style>
 </head>
@@ -295,965 +145,761 @@
 
 <nav>
   <button class="nav-btn active" onclick="switchPage('board-page', this)">⚾ 作戦ボード</button>
-  <button class="nav-btn" onclick="switchPage('lineup-page', this)">📋 スタメン・継投</button>
-  <button class="nav-btn" onclick="switchPage('roster-page', this)">👤 選手登録・管理</button>
+  <button class="nav-btn" onclick="switchPage('lineup-page', this)">📋 スタメン・ドラッグ打順</button>
+  <button class="nav-btn" onclick="switchPage('roster-page', this)">👤 選手検索・管理</button>
 </nav>
 
 <!-- 画面1：作戦ボード -->
 <div class="page active" id="board-page">
   <header>
-    <!-- 1. 描画グループ -->
-    <div class="header-group">
-      <span class="group-label">描画</span>
-      <button class="btn active" id="tool-select" onclick="setTool('select')" title="移動（指操作）">✋</button>
-      <button class="btn" id="tool-pen" onclick="setTool('pen')" title="ペン（Apple Pencil）">✏️</button>
-      <button class="btn" id="tool-laser" onclick="setTool('laser')" title="レーザーポインター">🚨</button>
-      <button class="btn" id="tool-eraser" onclick="setTool('eraser')" title="消しゴム">🧹</button>
-      
+    <div class="header-tab-bar">
+      <button class="header-tab active" onclick="switchHeaderPanel('panel-draw', this)">✏️ 描画</button>
+      <button class="header-tab" onclick="switchHeaderPanel('panel-players', this)">🏃 選手</button>
+      <button class="header-tab" onclick="switchHeaderPanel('panel-game', this)">⚙️ 管理</button>
+    </div>
+
+    <!-- 描画ツール -->
+    <div class="header-panel active" id="panel-draw">
+      <button class="btn active" id="tool-select" onclick="BoardModule.setTool('select')">✋ 移動</button>
+      <button class="btn" id="tool-pen" onclick="BoardModule.setTool('pen')">✏️ ペン</button>
+      <button class="btn" id="tool-laser" onclick="BoardModule.setTool('laser')">🚨 ポインター</button>
+      <button class="btn" id="tool-eraser" onclick="BoardModule.setTool('eraser')">🧹 消しゴム</button>
+      <!-- カラー選択（黒・紫を追加） -->
       <div class="color-picker">
-        <div class="color-dot selected" style="background:#ffffff" onclick="setColor('#ffffff', this)"></div>
-        <div class="color-dot" style="background:#ef4444" onclick="setColor('#ef4444', this)"></div>
-        <div class="color-dot" style="background:#3b82f6" onclick="setColor('#3b82f6', this)"></div>
-        <div class="color-dot" style="background:#eab308" onclick="setColor('#eab308', this)"></div>
-        <div class="color-dot" style="background:#22c55e" onclick="setColor('#22c55e', this)"></div>
+        <div class="color-dot selected" style="background:#ffffff" onclick="BoardModule.setColor('#ffffff', this)"></div>
+        <div class="color-dot" style="background:#ef4444" onclick="BoardModule.setColor('#ef4444', this)"></div>
+        <div class="color-dot" style="background:#3b82f6" onclick="BoardModule.setColor('#3b82f6', this)"></div>
+        <div class="color-dot" style="background:#eab308" onclick="BoardModule.setColor('#eab308', this)"></div>
+        <div class="color-dot" style="background:#a855f7" onclick="BoardModule.setColor('#a855f7', this)"></div>
+        <div class="color-dot" style="background:#0f172a" onclick="BoardModule.setColor('#0f172a', this)"></div>
       </div>
-      
-      <select id="stroke-width-select" onchange="setStrokeWidth(this.value)" style="height:40px;">
-        <option value="3">細線</option>
-        <option value="6" selected>標準</option>
-        <option value="10">太線</option>
-      </select>
+      <button class="btn btn-purple" onclick="BoardModule.playAnimation()">▶ タイムライン再生</button>
     </div>
 
-    <!-- 2. 選手グループ -->
-    <div class="header-group">
-      <span class="group-label">選手</span>
-      <button class="btn" onclick="addRunner()">🏃 走者+</button>
-      <button class="btn" onclick="removeRunner()">❌ 走者-</button>
-      <button class="btn" id="btn-toggle-label" onclick="toggleLabelMode()">🔢 ポジション</button>
+    <!-- 選手操作 -->
+    <div class="header-panel" id="panel-players">
+      <button class="btn" onclick="BoardModule.addRunner()">🏃 走者+</button>
+      <button class="btn" onclick="BoardModule.removeRunner()">❌ 走者-</button>
+      <button class="btn" id="btn-toggle-label" onclick="BoardModule.toggleLabelMode()">🔢 表示切替</button>
     </div>
 
-    <!-- 3. 試合 & 管理グループ -->
-    <div class="header-group">
-      <span class="group-label">試合</span>
-      <button class="btn btn-danger" id="btn-record" onclick="toggleRecord()">🎥 録画</button>
-      <button class="btn" onclick="undo()" title="Undo (3本指スワイプ)">↩️</button>
-      <button class="btn" onclick="redo()" title="Redo">↪️</button>
-      <button class="btn btn-success" onclick="toggleBottomSheet()" title="保存・ライブラリ">💾 保存 / 読込</button>
-      <button class="btn btn-danger" onclick="resetBoard()">🔄</button>
+    <!-- 管理ツール（全体Global Undo/Redo対応） -->
+    <div class="header-panel" id="panel-game">
+      <button class="btn" onclick="AppUndoManager.undo()">↩️ 全Undo</button>
+      <button class="btn" onclick="AppUndoManager.redo()">↪️ 全Redo</button>
+      <button class="btn btn-success" onclick="toggleBottomSheet()">💾 保存/ライブラリ</button>
+      <button class="btn" onclick="DataModule.exportJSON()">📤 JSON出力</button>
+      <label class="btn" style="cursor:pointer;">📥 JSON入力<input type="file" accept=".json" onchange="DataModule.importJSON(event)" style="display:none;"></label>
+      <button class="btn btn-purple" onclick="DataModule.showQRCode()">📱 QRコード共有</button>
+      <button class="btn btn-danger" onclick="BoardModule.resetBoard()">🔄 リセット</button>
     </div>
   </header>
 
-  <!-- 右上常時表示 スコアボード -->
+  <!-- AI作戦自動提案バー -->
+  <div class="ai-suggestion-bar">
+    <span class="ai-badge">AI提案</span>
+    <div id="ai-suggestions" style="display:flex; gap:6px;"></div>
+  </div>
+
+  <!-- スコアボード（NEXT -> 次の回） -->
   <div class="scoreboard-overlay">
-    <div class="score-box">
+    <div class="score-ctrl-group">
       <span class="score-title">イニング</span>
-      <span class="score-val" id="disp-inning" onclick="advanceInning()">1表</span>
+      <div class="score-row">
+        <button class="btn btn-sm" onclick="ScoreModule.advanceInning()">次の回</button>
+        <span class="score-val" id="disp-inning">1表</span>
+      </div>
     </div>
-    <div class="score-box">
+    <div class="score-ctrl-group">
       <span class="score-title">自チーム</span>
-      <span class="score-val" id="disp-score-my" onclick="addScore('my', 1)" oncontextmenu="addScore('my', -1); return false;">0</span>
+      <div class="score-row">
+        <button class="btn btn-sm" onclick="ScoreModule.addScore('my', -1)">-</button>
+        <span class="score-val" id="disp-score-my">0</span>
+        <button class="btn btn-sm" onclick="ScoreModule.addScore('my', 1)">+</button>
+      </div>
     </div>
-    <div class="score-box">
+    <div class="score-ctrl-group">
       <span class="score-title">相手</span>
-      <span class="score-val" id="disp-score-opp" onclick="addScore('opp', 1)" oncontextmenu="addScore('opp', -1); return false;">0</span>
+      <div class="score-row">
+        <button class="btn btn-sm" onclick="ScoreModule.addScore('opp', -1)">-</button>
+        <span class="score-val" id="disp-score-opp">0</span>
+        <button class="btn btn-sm" onclick="ScoreModule.addScore('opp', 1)">+</button>
+      </div>
     </div>
-    <div class="bso-container">
-      <div class="bso-row"><span class="bso-label" style="color:#22c55e;">B</span><div class="bso-dots" onclick="stepBSO('b')"><div class="bso-dot" id="b-1"></div><div class="bso-dot" id="b-2"></div><div class="bso-dot" id="b-3"></div></div></div>
-      <div class="bso-row"><span class="bso-label" style="color:#eab308;">S</span><div class="bso-dots" onclick="stepBSO('s')"><div class="bso-dot" id="s-1"></div><div class="bso-dot" id="s-2"></div></div></div>
-      <div class="bso-row"><span class="bso-label" style="color:#ef4444;">O</span><div class="bso-dots" onclick="stepBSO('o')"><div class="bso-dot" id="o-1"></div><div class="bso-dot" id="o-2"></div></div></div>
+    <div class="score-ctrl-group">
+      <span class="score-title">OUT</span>
+      <div class="score-row" style="cursor:pointer; padding:4px;" onclick="ScoreModule.stepOut()">
+        <div class="out-dots">
+          <div class="out-dot" id="o-1"></div>
+          <div class="out-dot" id="o-2"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- グラウンド & SVG -->
-  <div id="field-container">
+  <!-- グラウンド -->
+  <div id="field-container" ondblclick="BoardModule.resetZoom()">
     <svg id="svgField" viewBox="0 0 1200 1300" preserveAspectRatio="xMidYMid meet">
       <defs>
         <pattern id="grass-stripe" width="1200" height="100" patternUnits="userSpaceOnUse">
           <rect x="0" y="0" width="1200" height="50" fill="#15803d"/>
           <rect x="0" y="50" width="1200" height="50" fill="#166534"/>
         </pattern>
-        <filter id="laser-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-
-        <!-- 特化矢印マーカー -->
-        <marker id="arrow-throw" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/>
-        </marker>
-        <marker id="arrow-run" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#22c55e"/>
-        </marker>
-        <marker id="arrow-hit" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#eab308"/>
-        </marker>
-        <marker id="arrow-field" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/>
-        </marker>
+        <marker id="arrow-throw" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"/></marker>
+        <marker id="arrow-run" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#22c55e"/></marker>
+        <marker id="arrow-hit" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#eab308"/></marker>
+        <marker id="arrow-field" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"/></marker>
       </defs>
-
       <g id="viewport">
-        <!-- 外野 & フェンス -->
         <path d="M 100 980 L 100 450 A 700 700 0 0 1 1100 450 L 1100 980 Z" fill="url(#grass-stripe)" />
         <path d="M 85 990 L 85 430 A 725 725 0 0 1 1115 430 L 1115 990" fill="none" stroke="#334155" stroke-width="14" />
         <path d="M 90 990 L 90 435 A 720 720 0 0 1 1110 435 L 1110 990" fill="none" stroke="#f59e0b" stroke-width="4" />
-
-        <!-- 内野 & ダイヤモンド -->
-        <path d="M 600 980 L 260 640 A 480 480 0 0 1 940 640 Z" fill="#b45309" />
         <polygon points="600,950 840,710 600,470 360,710" fill="url(#grass-stripe)" />
-
-        <!-- ファールライン -->
         <line x1="600" y1="980" x2="90" y2="435" stroke="#ffffff" stroke-width="4" />
         <line x1="600" y1="980" x2="1110" y2="435" stroke="#ffffff" stroke-width="4" />
-
-        <!-- マウンド & ホームベース -->
         <circle cx="600" cy="710" r="36" fill="#b45309" />
         <rect x="588" y="704" width="24" height="10" fill="#ffffff" rx="2" />
-        <rect x="540" y="960" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
-        <rect x="630" y="960" width="30" height="50" fill="none" stroke="#ffffff" stroke-width="2" />
         <polygon points="585,970 615,970 615,985 600,1000 585,985" fill="#ffffff" />
-
-        <!-- ベース -->
         <rect x="828" y="698" width="24" height="24" fill="#ffffff" transform="rotate(45 840 710)" />
         <rect x="588" y="458" width="24" height="24" fill="#ffffff" transform="rotate(45 600 470)" />
         <rect x="348" y="698" width="24" height="24" fill="#ffffff" transform="rotate(45 360 710)" />
-
         <g id="linesLayer"></g>
         <g id="objectsLayer"></g>
       </g>
     </svg>
   </div>
 
-  <!-- 下部特化ツール & シフト切り替えバー -->
-  <div class="field-bottom-bar">
-    <div class="btn-group">
-      <button class="btn active" id="line-type-throw" onclick="setLineType('throw')">🔴 送球</button>
-      <button class="btn" id="line-type-run" onclick="setLineType('run')">🟢 走塁</button>
-      <button class="btn" id="line-type-hit" onclick="setLineType('hit')">🟡 打球</button>
-      <button class="btn" id="line-type-field" onclick="setLineType('field')">🔵 守備</button>
-    </div>
-    <div style="width:1px; background:rgba(255,255,255,0.2); margin:0 4px;"></div>
-    <div class="btn-group">
-      <button class="btn" onclick="applyShiftPreset('normal')">通常守備</button>
-      <button class="btn" onclick="applyShiftPreset('bunt')">バント</button>
-      <button class="btn" onclick="applyShiftPreset('pull')">引っ張り</button>
-      <button class="btn" onclick="applyShiftPreset('deep')">長打警戒</button>
-      <button class="btn" onclick="applyShiftPreset('5infield')">5人内野</button>
-    </div>
+  <!-- ズーム操作（Reset -> 100%統一） -->
+  <div class="zoom-controls">
+    <button class="btn btn-sm" onclick="BoardModule.zoomDelta(-0.2)">-</button>
+    <span id="zoom-disp" style="font-size:12px; font-weight:bold; color:#94a3b8; min-width:45px; text-align:center;">100%</span>
+    <button class="btn btn-sm" onclick="BoardModule.zoomDelta(0.2)">+</button>
+    <button class="btn btn-sm" onclick="BoardModule.resetZoom()">100%</button>
   </div>
 
-  <div class="zoom-indicator" id="zoom-disp">100%</div>
+  <div class="field-bottom-bar">
+    <div class="btn-group">
+      <button class="btn active" id="line-type-throw" onclick="BoardModule.setLineType('throw')">🔴 送球（実線）</button>
+      <button class="btn" id="line-type-run" onclick="BoardModule.setLineType('run')">🟢 走塁（長破線）</button>
+      <button class="btn" id="line-type-hit" onclick="BoardModule.setLineType('hit')">🟡 打球（太線）</button>
+      <button class="btn" id="line-type-field" onclick="BoardModule.setLineType('field')">🔵 守備（点線）</button>
+    </div>
+  </div>
 </div>
 
-<!-- 画面2：スタメン・継投設定 -->
+<!-- 画面2：スタメン設定（Drag & Drop 打順並び替え対応） -->
 <div class="page" id="lineup-page">
   <div class="container-page">
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
-        <h3 style="margin:0; border:none;">📋 スターティングメンバー設定</h3>
-        <div style="display:flex; align-items:center; gap:15px;">
-          <label style="font-size:14px; font-weight:bold; cursor:pointer; color:#38bdf8;">
-            <input type="checkbox" id="dh-checkbox" onchange="toggleDhMode()"> 🥎 DH制採用
-          </label>
-          <button class="btn btn-success" onclick="exportPDF()">🖨️ オーダー用紙 PDF</button>
-        </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0; border:none;">📋 スターティングメンバー（ドラッグで打順変更可能）</h3>
+        <button class="btn btn-success" onclick="DataModule.exportDirectorPDF()">🖨️ 監督用1枚シートPDF</button>
       </div>
-
       <table>
         <thead>
-          <tr>
-            <th style="width:50px;">打順</th>
-            <th style="width:110px;">守備位置</th>
-            <th>選手選択</th>
-            <th style="width:100px;">投打</th>
-            <th style="width:80px;">学年</th>
-            <th>備考</th>
-          </tr>
+          <tr><th style="width:40px;">移動</th><th style="width:50px;">打順</th><th style="width:90px;">守備</th><th>選手選択</th><th style="width:80px;">投打</th><th style="width:60px;">学年</th><th>メモ</th></tr>
         </thead>
         <tbody id="lineup-table-body"></tbody>
       </table>
-
-      <div id="dh-pitcher-container" style="display:none; margin-top:15px; background:rgba(15,23,42,0.6); padding:12px; border-radius:12px; border:1px solid #0284c7;">
-        <h4 style="color:#38bdf8; font-size:14px; margin-bottom:8px;">⚾ DH制指定投手 (P)</h4>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <select id="dh-pitcher-select" style="flex:1;"></select>
-          <input type="text" id="dh-pitcher-memo" placeholder="備考（右投・100球まで等）" style="flex:1.5;">
-        </div>
-      </div>
-
-      <button class="btn btn-success" style="margin-top:15px; width:100%; justify-content:center;" onclick="applyLineupToBoard()">盤面にスタメン反映</button>
-    </div>
-
-    <div class="card">
-      <h3>🔄 継投（投手リレー）設定</h3>
-      <div style="display:flex; gap:10px; margin-bottom:12px;">
-        <select id="relay-pitcher-select" style="flex:1;"></select>
-        <input type="text" id="relay-pitcher-role" placeholder="役割（中継ぎ、抑え等）" style="flex:1;">
-        <button class="btn btn-success" onclick="addRelayPitcher()">追加</button>
-      </div>
-
-      <table>
-        <thead>
-          <tr><th>順序 / 役割</th><th>背番号</th><th>選手名</th><th>操作</th></tr>
-        </thead>
-        <tbody id="relay-table-body"></tbody>
-      </table>
+      <button class="btn btn-success" style="margin-top:12px; width:100%; justify-content:center;" onclick="LineupModule.applyToBoard()">盤面にスタメン反映</button>
     </div>
   </div>
 </div>
 
-<!-- 画面3：選手管理 -->
+<!-- 画面3：選手管理（背番号・名前・学年マルチ検索対応） -->
 <div class="page" id="roster-page">
   <div class="container-page">
     <div class="card">
-      <h3>👤 選手登録・管理</h3>
-      <div style="display:grid; grid-template-columns: 80px 1fr 120px 100px 120px; gap:10px; margin-bottom:15px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="margin:0; border:none;">👤 選手登録・マルチ検索</h3>
+        <input type="text" id="roster-search" placeholder="🔍 背番号・名前・学年検索..." oninput="LineupModule.renderRoster()" style="width:220px;">
+      </div>
+      <div style="display:grid; grid-template-columns: 80px 1fr 120px 90px 100px; gap:8px; margin-bottom:12px;">
         <input type="text" id="new-p-num" placeholder="背番号">
         <input type="text" id="new-p-name" placeholder="選手名">
-        <select id="new-p-throws">
-          <option value="右投右打">右投右打</option>
-          <option value="右投左打">右投左打</option>
-          <option value="左投左打">左投左打</option>
-          <option value="左投右打">左投右打</option>
-        </select>
-        <select id="new-p-grade">
-          <option value="3年">3年</option>
-          <option value="2年">2年</option>
-          <option value="1年">1年</option>
-        </select>
-        <button class="btn btn-success" onclick="addRosterPlayer()">新規追加</button>
+        <select id="new-p-throws"><option value="右投右打">右投右打</option><option value="右投左打">右投左打</option><option value="左投左打">左投左打</option></select>
+        <select id="new-p-grade"><option value="3年">3年</option><option value="2年">2年</option><option value="1年">1年</option></select>
+        <button class="btn btn-success" onclick="LineupModule.addRosterPlayer()">追加</button>
       </div>
       <table>
-        <thead>
-          <tr><th>背番号</th><th>選手名</th><th>投打</th><th>学年</th><th>操作</th></tr>
-        </thead>
+        <thead><tr><th>背番号</th><th>選手名</th><th>投打</th><th>学年</th><th>操作</th></tr></thead>
         <tbody id="roster-table-body"></tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- iPad最適化 Bottom Sheet (保存・ライブラリ) -->
+<!-- Bottom Sheet (広々メモ領域) -->
 <div class="bottom-sheet" id="bottomSheet">
   <div class="sheet-handle" onclick="toggleBottomSheet()"></div>
   <div class="sheet-content">
     <div>
-      <h3 style="color:#38bdf8; margin-bottom:12px;">💾 作戦を保存</h3>
-      <input type="text" id="save-title" placeholder="タイトル（例: 満塁スクイズ警戒）" style="width:100%; margin-bottom:8px;">
-      <select id="save-category" style="width:100%; margin-bottom:8px;">
-        <option value="バント">バント</option>
-        <option value="エンドラン">エンドラン</option>
-        <option value="守備シフト">守備シフト</option>
-        <option value="牽制">牽制</option>
-        <option value="その他">その他</option>
-      </select>
-      <input type="text" id="save-tags" placeholder="タグ (カンマ区切り)" style="width:100%; margin-bottom:8px;">
-      <textarea id="save-memo" rows="3" placeholder="メモ指示内容" style="width:100%; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.15); color:#fff; border-radius:8px; padding:8px; margin-bottom:12px;"></textarea>
-      <button class="btn btn-success" style="width:100%; justify-content:center; margin-bottom:16px;" onclick="savePlay()">ライブラリへ保存</button>
-
-      <h3 style="color:#38bdf8; margin-bottom:12px;">📤 エクスポート & 共有</h3>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn btn-success" style="flex:1;" onclick="exportPNG()">📷 PNG画像保存</button>
-        <button class="btn" style="flex:1;" onclick="sharePlay()">🔗 共有</button>
-      </div>
+      <h3 style="color:#38bdf8; margin-bottom:10px;">💾 作戦指示の保存</h3>
+      <input type="text" id="save-title" placeholder="作戦タイトル" style="width:100%; margin-bottom:8px;">
+      <textarea id="save-memo" rows="8" placeholder="詳細メモ・指示内容（広々記載可能）" style="width:100%; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.15); color:#fff; border-radius:8px; padding:10px; margin-bottom:12px; font-size:14px;"></textarea>
+      <button class="btn btn-success" style="width:100%; justify-content:center;" onclick="LibraryModule.savePlay()">保存実行</button>
     </div>
-
     <div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <h3 style="color:#38bdf8; margin:0;">📚 作戦ライブラリ</h3>
-        <input type="text" id="search-library" placeholder="🔍 検索キーワード..." oninput="filterLibrary()" style="width:200px; height:36px;">
+        <input type="text" id="search-library" placeholder="🔍 作戦検索..." oninput="LibraryModule.filter()" style="width:180px; height:36px;">
       </div>
       <div class="library-grid" id="saved-list"></div>
     </div>
   </div>
 </div>
 
-<!-- 印刷用オーダー用紙テンプレート -->
-<div id="pdf-order-sheet" style="display:none;">
-  <h1 style="text-align:center; font-size:24px; text-decoration:underline; margin-bottom:10px;">スターティングオーダー表</h1>
-  <div style="display:flex; justify-content:space-between; font-size:14px; margin-bottom:10px;">
-    <span>チーム名: _______________________</span>
-    <span>日付: ____年 __月 __日</span>
+<!-- QRコードダイアログ -->
+<div id="qrModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:200; justify-content:center; align-items:center;">
+  <div class="card" style="background:#1e293b; text-align:center; padding:24px; max-width:320px;">
+    <h3 style="color:#38bdf8; margin-bottom:12px;">📱 チーム共有用QR</h3>
+    <img id="qrImage" src="" alt="QR" style="width:200px; height:200px; margin-bottom:12px; border-radius:8px;">
+    <p style="font-size:12px; color:#94a3b8; margin-bottom:12px;">端末のカメラで読み取ると作戦データを受け取れます</p>
+    <button class="btn btn-sm" style="width:100%;" onclick="document.getElementById('qrModal').style.display='none'">閉じる</button>
   </div>
-  <table class="order-table">
-    <thead>
-      <tr><th>打順</th><th>位置</th><th>背番号</th><th>選手名</th><th>投打</th><th>備考</th></tr>
-    </thead>
-    <tbody id="pdf-order-tbody"></tbody>
-  </table>
-  <div id="pdf-relay-section" style="margin-top:20px; display:none;">
-    <h3 style="font-size:16px; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px;">【 継投・控え投手リスト 】</h3>
-    <table class="order-table">
-      <thead><tr><th>役割</th><th>背番号</th><th>選手名</th></tr></thead>
-      <tbody id="pdf-relay-tbody"></tbody>
-    </table>
+</div>
+
+<!-- 監督用1枚シート PDF印刷レイアウト -->
+<div id="pdf-director-sheet" style="display:none;">
+  <h2 style="text-align:center; margin-bottom:4px;">野球作戦指示書 / オーダーシート</h2>
+  <div style="text-align:right; font-size:12px; margin-bottom:10px;" id="pdf-date"></div>
+  <div class="pdf-grid">
+    <div>
+      <h3>【グラウンド配置図】</h3>
+      <img id="pdf-board-img" class="pdf-board-img" src="" alt="作戦図">
+      <div style="margin-top:10px; font-size:12px; border:1px solid #000; padding:8px;" id="pdf-memo-box"></div>
+    </div>
+    <div>
+      <h3>【スターティングメンバー】</h3>
+      <table class="pdf-table">
+        <thead><tr><th>打順</th><th>位置</th><th>背番号</th><th>選手名</th><th>投打</th></tr></thead>
+        <tbody id="pdf-lineup-tbody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
 <script>
-  // --- 設定 & 定数 ---
-  const CONFIG = {
-    MAX_HISTORY: 50,
-    AUTO_SAVE_INTERVAL: 30000,
-    MIN_ZOOM: 0.6,
-    MAX_ZOOM: 3.0
+  /* === 1. グローバルUndo/Redoマネージャー (AppUndoManager) === */
+  const AppUndoManager = {
+    stack: [], pointer: -1,
+    pushState() {
+      if (this.pointer < this.stack.length - 1) this.stack = this.stack.slice(0, this.pointer + 1);
+      const snapshot = JSON.stringify({
+        score: ScoreModule.state,
+        board: { players: BoardModule.players, runners: BoardModule.runners, ball: BoardModule.ball, lines: BoardModule.lines },
+        lineup: LineupModule.lineup,
+        roster: LineupModule.roster
+      });
+      this.stack.push(snapshot);
+      if (this.stack.length > 30) this.stack.shift();
+      else this.pointer++;
+    },
+    undo() {
+      if (this.pointer > 0) {
+        this.pointer--;
+        this.apply(JSON.parse(this.stack[this.pointer]));
+      }
+    },
+    redo() {
+      if (this.pointer < this.stack.length - 1) {
+        this.pointer++;
+        this.apply(JSON.parse(this.stack[this.pointer]));
+      }
+    },
+    apply(st) {
+      ScoreModule.state = st.score; ScoreModule.updateUI();
+      BoardModule.players = st.board.players; BoardModule.runners = st.board.runners; BoardModule.ball = st.board.ball; BoardModule.lines = st.board.lines; BoardModule.render();
+      LineupModule.lineup = st.lineup; LineupModule.roster = st.roster; LineupModule.renderLineup(); LineupModule.renderRoster();
+    }
   };
 
-  // デフォルト配置データ
-  const defaultPlayers = [
-    { id: 'P', label: '投', num: '1', name: '投手太郎', x: 600, y: 740, color: '#ef4444' },
-    { id: 'C', label: '捕', num: '2', name: '捕手次郎', x: 600, y: 1050, color: '#ef4444' },
-    { id: '1B', label: '一', num: '3', name: '一塁三郎', x: 870, y: 670, color: '#ef4444' },
-    { id: '2B', label: '二', num: '4', name: '二塁四郎', x: 730, y: 550, color: '#ef4444' },
-    { id: '3B', label: '三', num: '5', name: '三塁五郎', x: 330, y: 670, color: '#ef4444' },
-    { id: 'SS', label: '遊', num: '6', name: '遊撃六郎', x: 470, y: 550, color: '#ef4444' },
-    { id: 'LF', label: '左', num: '7', name: '左外七郎', x: 280, y: 340, color: '#ef4444' },
-    { id: 'CF', label: '中', num: '8', name: '中外八郎', x: 600, y: 260, color: '#ef4444' },
-    { id: 'RF', label: '右', num: '9', name: '右外九郎', x: 920, y: 340, color: '#ef4444' },
-    { id: 'BATTER', label: '打', num: '10', name: '打者十郎', x: 530, y: 980, color: '#3b82f6' }
-  ];
-
-  // グローバル状態
-  let players = JSON.parse(JSON.stringify(defaultPlayers));
-  let runners = [];
-  let ball = { x: 600, y: 760 };
-  let lines = [];
-  let currentLine = null;
-
-  let currentTool = 'select'; // select, pen, laser, eraser
-  let currentLineType = 'throw'; // throw, run, hit, field
-  let currentColor = '#ffffff';
-  let strokeWidth = 6;
-  let labelMode = 'label'; // label, num, name
-
-  // 試合スコア状態
-  let gameScore = { inning: 1, isTop: true, my: 0, opp: 0, b: 0, s: 0, o: 0 };
-
-  // ズーム & パン状態
-  let zoomScale = 1.0;
-  let panX = 0, panY = 0;
-  let isPinching = false;
-  let touchStartDist = 0;
-
-  // 履歴 (Undo/Redo 50件)
-  let undoStack = [];
-  let redoStack = [];
-
-  // Apple Pencil / Touch 区分け
-  let isDraggingObj = false;
-  let isDrawingLine = false;
-  let dragTarget = null;
-  let lastTapTime = 0;
-
-  // 録画
-  let isRecording = false;
-  let mediaRecorder = null;
-  let recordedChunks = [];
-  let recCanvas = document.createElement('canvas');
-  recCanvas.width = 1200; recCanvas.height = 1300;
-  let recCtx = recCanvas.getContext('2d');
-
-  // SVG参照
-  const svg = document.getElementById('svgField');
-  const viewport = document.getElementById('viewport');
-  const linesLayer = document.getElementById('linesLayer');
-  const objectsLayer = document.getElementById('objectsLayer');
-
-  // --- 画面初期化 ---
-  window.addEventListener('DOMContentLoaded', () => {
-    setupPointerEvents();
-    setupMultiTouchAndGesture();
-    renderObjects();
-    renderLines();
-    updateScoreboardUI();
-    renderRosterTable();
-    
-    // 30秒自動バックアップ
-    setInterval(autoSaveState, CONFIG.AUTO_SAVE_INTERVAL);
-  });
-
-  // --- 状態保存 & Undo/Redo ---
-  function saveState() {
-    if (undoStack.length >= CONFIG.MAX_HISTORY) undoStack.shift();
-    undoStack.push(JSON.stringify({ players, runners, ball, lines, gameScore }));
-    redoStack = [];
-  }
-
-  function undo() {
-    if (undoStack.length === 0) return;
-    redoStack.push(JSON.stringify({ players, runners, ball, lines, gameScore }));
-    const state = JSON.parse(undoStack.pop());
-    restoreState(state);
-  }
-
-  function redo() {
-    if (redoStack.length === 0) return;
-    undoStack.push(JSON.stringify({ players, runners, ball, lines, gameScore }));
-    const state = JSON.parse(redoStack.pop());
-    restoreState(state);
-  }
-
-  function restoreState(state) {
-    players = state.players;
-    runners = state.runners;
-    ball = state.ball;
-    lines = state.lines;
-    gameScore = state.gameScore || gameScore;
-    renderObjects();
-    renderLines();
-    updateScoreboardUI();
-  }
-
-  function autoSaveState() {
-    localStorage.setItem('baseball_autosave', JSON.stringify({ players, runners, ball, lines, gameScore }));
-  }
-
-  // --- Apple Pencil & Pointer Events ---
-  function setupPointerEvents() {
-    svg.addEventListener('pointerdown', (e) => {
-      // 3本指スワイプ感知（Undo/Redo）
-      if (e.touches && e.touches.length === 3) {
-        undo();
-        return;
+  /* === 2. スコアモジュール (ScoreModule) === */
+  const ScoreModule = {
+    state: { inning: 1, isTop: true, my: 0, opp: 0, o: 0 },
+    addScore(team, val) {
+      AppUndoManager.pushState();
+      this.state[team] = Math.max(0, this.state[team] + val);
+      this.updateUI();
+    },
+    advanceInning() {
+      AppUndoManager.pushState();
+      if (this.state.isTop) this.state.isTop = false;
+      else { this.state.isTop = true; this.state.inning++; }
+      this.state.o = 0;
+      this.updateUI();
+    },
+    stepOut() {
+      AppUndoManager.pushState();
+      this.state.o = (this.state.o + 1) % 3;
+      this.updateUI();
+    },
+    updateUI() {
+      document.getElementById('disp-inning').innerText = `${this.state.inning}${this.state.isTop ? '表' : '裏'}`;
+      document.getElementById('disp-score-my').innerText = this.state.my;
+      document.getElementById('disp-score-opp').innerText = this.state.opp;
+      for (let i = 1; i <= 2; i++) {
+        document.getElementById(`o-${i}`)?.classList.toggle('o-active', this.state.o >= i);
       }
-
-      const isPen = (e.pointerType === 'pen');
-      const pt = getSVGPoint(e);
-
-      // Apple Pencil ダブルタップ簡易検知 (消しゴム切替)
-      const now = Date.now();
-      if (isPen && (now - lastTapTime < 300)) {
-        setTool(currentTool === 'eraser' ? 'pen' : 'eraser');
-        lastTapTime = now;
-        return;
-      }
-      lastTapTime = now;
-
-      if (isPen || currentTool === 'pen' || currentTool === 'laser') {
-        saveState();
-        isDrawingLine = true;
-        // 筆圧で線幅調整
-        const pWidth = isPen && e.pressure > 0 ? e.pressure * strokeWidth * 2 : strokeWidth;
-        currentLine = {
-          type: currentLineType,
-          color: currentTool === 'laser' ? '#ff0033' : currentColor,
-          width: pWidth,
-          isLaser: currentTool === 'laser',
-          createdAt: Date.now(),
-          points: [pt]
-        };
-        lines.push(currentLine);
-      }
-    });
-
-    svg.addEventListener('pointermove', (e) => {
-      const pt = getSVGPoint(e);
-      if (isDraggingObj) {
-        if (dragTarget === 'ball') ball = pt;
-        else {
-          const p = [...players, ...runners].find(x => x.id === dragTarget);
-          if (p) { p.x = pt.x; p.y = pt.y; }
-        }
-        requestAnimationFrame(renderObjects);
-      } else if (isDrawingLine && currentLine) {
-        currentLine.points.push(pt);
-        requestAnimationFrame(renderLines);
-      } else if (currentTool === 'eraser' && (e.buttons === 1 || e.pointerType === 'pen')) {
-        lines = lines.filter(l => !l.points.some(p => Math.hypot(p.x - pt.x, p.y - pt.y) < 25));
-        requestAnimationFrame(renderLines);
-      }
-    });
-
-    svg.addEventListener('pointerup', () => {
-      isDraggingObj = false;
-      isDrawingLine = false;
-      dragTarget = null;
-      currentLine = null;
-    });
-  }
-
-  // --- ピンチズーム & パン移動 (2本指操作) ---
-  function setupMultiTouchAndGesture() {
-    const container = document.getElementById('field-container');
-
-    container.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 2) {
-        isPinching = true;
-        touchStartDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-      }
-    });
-
-    container.addEventListener('touchmove', (e) => {
-      if (isPinching && e.touches.length === 2) {
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        const factor = dist / touchStartDist;
-        zoomScale = Math.min(Math.max(zoomScale * factor, CONFIG.MIN_ZOOM), CONFIG.MAX_ZOOM);
-        touchStartDist = dist;
-        applyViewportTransform();
-      }
-    });
-
-    container.addEventListener('touchend', (e) => {
-      if (e.touches.length < 2) isPinching = false;
-    });
-
-    // ダブルタップで100%リセット
-    container.addEventListener('dblclick', () => {
-      zoomScale = 1.0;
-      panX = 0; panY = 0;
-      applyViewportTransform();
-    });
-  }
-
-  function applyViewportTransform() {
-    viewport.setAttribute('transform', `translate(${panX}, ${panY}) scale(${zoomScale})`);
-    document.getElementById('zoom-disp').innerText = `${Math.round(zoomScale * 100)}%`;
-  }
-
-  function getSVGPoint(e) {
-    const rect = svg.getBoundingClientRect();
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    
-    // ズーム・パン座標逆計算
-    const rawX = ((clientX - rect.left) / rect.width) * 1200;
-    const rawY = ((clientY - rect.top) / rect.height) * 1300;
-    return {
-      x: (rawX - panX) / zoomScale,
-      y: (rawY - panY) / zoomScale
-    };
-  }
-
-  // --- 描画レンダリング ---
-  function renderObjects() {
-    objectsLayer.innerHTML = '';
-
-    // ボール描画
-    const ballG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    ballG.innerHTML = `
-      <circle cx="${ball.x}" cy="${ball.y}" r="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" style="cursor:grab; filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.6));"/>
-      <path d="M ${ball.x-10} ${ball.y-10} A 12 12 0 0 1 ${ball.x-10} ${ball.y+10}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,3"/>
-      <path d="M ${ball.x+10} ${ball.y-10} A 12 12 0 0 0 ${ball.x+10} ${ball.y+10}" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,3"/>
-    `;
-    ballG.onpointerdown = (e) => { if(e.pointerType !== 'pen'){ e.stopPropagation(); startObjDrag('ball'); } };
-    objectsLayer.appendChild(ballG);
-
-    // 選手・ランナー描画
-    [...players, ...runners].forEach(p => {
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      let textVis = p.label;
-      if (labelMode === 'num') textVis = p.num || p.label;
-      if (labelMode === 'name') textVis = p.name || p.label;
-
-      g.innerHTML = `
-        <circle cx="${p.x}" cy="${p.y}" r="32" fill="${p.color}" stroke="#ffffff" stroke-width="3.5" style="cursor:grab; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));"/>
-        <text x="${p.x}" y="${p.y + 7}" text-anchor="middle" fill="#ffffff" font-size="20" font-weight="900" style="pointer-events:none;">${textVis}</text>
-      `;
-      g.onpointerdown = (e) => { if(e.pointerType !== 'pen'){ e.stopPropagation(); startObjDrag(p.id); } };
-      objectsLayer.appendChild(g);
-    });
-  }
-
-  function renderLines() {
-    linesLayer.innerHTML = '';
-    const now = Date.now();
-    lines = lines.filter(l => !l.isLaser || (now - l.createdAt < 1500));
-
-    lines.forEach(l => {
-      if (l.points.length < 2) return;
-      const d = l.points.reduce((acc, p, i) => `${acc} ${i===0?'M':'L'} ${p.x} ${p.y}`, '');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', d);
-      path.setAttribute('stroke', l.color);
-      path.setAttribute('stroke-width', l.width || 6);
-      path.setAttribute('fill', 'none');
-      path.setAttribute('stroke-linecap', 'round');
-
-      // 線種＆矢印設定
-      if (l.type === 'run') path.setAttribute('stroke-dasharray', '10,8');
-      if (l.type === 'field') path.setAttribute('stroke-dasharray', '4,6');
-      if (l.type) path.setAttribute('marker-end', `url(#arrow-${l.type})`);
-      if (l.isLaser) path.setAttribute('filter', 'url(#laser-glow)');
-
-      linesLayer.appendChild(path);
-    });
-  }
-
-  function startObjDrag(id) {
-    saveState();
-    isDraggingObj = true;
-    dragTarget = id;
-  }
-
-  // --- 守備シフトプリセット ---
-  function applyShiftPreset(preset) {
-    saveState();
-    if (preset === 'normal') players = JSON.parse(JSON.stringify(defaultPlayers));
-    else if (preset === 'bunt') {
-      const posMap = { '1B': {x:780,y:780}, '3B': {x:420,y:780}, 'SS': {x:600,y:550}, '2B': {x:780,y:670} };
-      players.forEach(p => { if(posMap[p.id]) { p.x = posMap[p.id].x; p.y = posMap[p.id].y; } });
-    } else if (preset === 'pull') {
-      const posMap = { '1B': {x:900,y:700}, '2B': {x:800,y:580}, 'SS': {x:620,y:580}, '3B': {x:450,y:700} };
-      players.forEach(p => { if(posMap[p.id]) { p.x = posMap[p.id].x; p.y = posMap[p.id].y; } });
-    } else if (preset === 'deep') {
-      players.forEach(p => { if(['LF','CF','RF'].includes(p.id)) p.y -= 80; });
-    } else if (preset === '5infield') {
-      const cf = players.find(p => p.id === 'CF');
-      if (cf) { cf.x = 600; cf.y = 620; }
+      AIModule.updateSuggestions();
     }
-    renderObjects();
-  }
+  };
 
-  // --- 試合スコアボードコントロール ---
-  function updateScoreboardUI() {
-    document.getElementById('disp-inning').innerText = `${gameScore.inning}${gameScore.isTop ? '表' : '裏'}`;
-    document.getElementById('disp-score-my').innerText = gameScore.my;
-    document.getElementById('disp-score-opp').innerText = gameScore.opp;
+  /* === 3. AI作戦自動提案モジュール (AIModule) === */
+  const AIModule = {
+    updateSuggestions() {
+      const runnerCount = BoardModule.runners.length;
+      const suggestions = [];
+      if (runnerCount === 0) suggestions.push('ヒッティング', 'セーフティバント', '外野深め警戒');
+      else if (runnerCount === 1) suggestions.push('送りバント', 'エンドラン', '盗塁狙い', '牽制');
+      else if (runnerCount === 2) suggestions.push('スクイズ', 'セーフティスクイズ', 'ダブルスチール');
+      else if (runnerCount >= 3) suggestions.push('前進守備', '満塁策', '押し出し警戒');
 
-    for (let i = 1; i <= 3; i++) document.getElementById(`b-${i}`)?.classList.toggle('b-active', gameScore.b >= i);
-    for (let i = 1; i <= 2; i++) document.getElementById(`s-${i}`)?.classList.toggle('s-active', gameScore.s >= i);
-    for (let i = 1; i <= 2; i++) document.getElementById(`o-${i}`)?.classList.toggle('o-active', gameScore.o >= i);
-  }
+      const el = document.getElementById('ai-suggestions');
+      el.innerHTML = suggestions.map(s => `<span class="ai-chip" onclick="alert('作戦【${s}】をインプットしました')">${s}</span>`).join('');
+    }
+  };
 
-  function advanceInning() {
-    saveState();
-    if (gameScore.isTop) gameScore.isTop = false;
-    else { gameScore.isTop = true; gameScore.inning++; }
-    gameScore.b = 0; gameScore.s = 0;
-    updateScoreboardUI();
-  }
+  /* === 4. 作戦ボードモジュール (BoardModule) === */
+  const BoardModule = {
+    defaultPlayers: [
+      { id: 'P', label: '投', num: '1', name: '投手太郎', x: 600, y: 740, color: '#ef4444' },
+      { id: 'C', label: '捕', num: '2', name: '捕手次郎', x: 600, y: 1050, color: '#ef4444' },
+      { id: '1B', label: '一', num: '3', name: '一塁三郎', x: 870, y: 670, color: '#ef4444' },
+      { id: '2B', label: '二', num: '4', name: '二塁四郎', x: 730, y: 550, color: '#ef4444' },
+      { id: '3B', label: '三', num: '5', name: '三塁五郎', x: 330, y: 670, color: '#ef4444' },
+      { id: 'SS', label: '遊', num: '6', name: '遊撃六郎', x: 470, y: 550, color: '#ef4444' },
+      { id: 'LF', label: '左', num: '7', name: '左外七郎', x: 280, y: 340, color: '#ef4444' },
+      { id: 'CF', label: '中', num: '8', name: '中外八郎', x: 600, y: 260, color: '#ef4444' },
+      { id: 'RF', label: '右', num: '9', name: '右外九郎', x: 920, y: 340, color: '#ef4444' },
+      { id: 'BATTER', label: '打', num: '10', name: '打者十郎', x: 530, y: 980, color: '#3b82f6' }
+    ],
+    players: [], runners: [], lines: [],
+    ball: { x: 600, y: 760 },
+    tool: 'select', lineType: 'throw', color: '#ffffff', labelMode: 'label',
+    zoomScale: 1.0, panX: 0, panY: 0,
 
-  function addScore(team, val) {
-    saveState();
-    if (team === 'my') gameScore.my = Math.max(0, gameScore.my + val);
-    else gameScore.opp = Math.max(0, gameScore.opp + val);
-    updateScoreboardUI();
-  }
+    init() {
+      this.players = JSON.parse(JSON.stringify(this.defaultPlayers));
+      this.setupEvents();
+      this.render();
+      AppUndoManager.pushState();
+    },
+    setTool(t) {
+      this.tool = t;
+      document.querySelectorAll('#panel-draw .btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`tool-${t}`)?.classList.add('active');
+    },
+    setLineType(t) {
+      this.lineType = t;
+      document.querySelectorAll('.field-bottom-bar .btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`line-type-${t}`)?.classList.add('active');
+    },
+    setColor(c, el) {
+      this.color = c;
+      document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+      el.classList.add('selected');
+    },
+    toggleLabelMode() {
+      this.labelMode = this.labelMode === 'label' ? 'num' : this.labelMode === 'num' ? 'name' : 'label';
+      this.render();
+    },
+    addRunner() {
+      if (this.runners.length >= 3) return;
+      AppUndoManager.pushState();
+      const idx = this.runners.length + 1;
+      const pos = idx === 1 ? { x: 860, y: 730 } : idx === 2 ? { x: 600, y: 420 } : { x: 340, y: 730 };
+      this.runners.push({ id: `R${idx}`, label: `走${idx}`, num: `R${idx}`, name: `走者${idx}`, x: pos.x, y: pos.y, color: '#eab308' });
+      this.render();
+      AIModule.updateSuggestions();
+    },
+    removeRunner() { AppUndoManager.pushState(); this.runners.pop(); this.render(); AIModule.updateSuggestions(); },
+    resetBoard() {
+      if (confirm('作戦盤を初期状態にリセットしますか？')) {
+        AppUndoManager.pushState();
+        this.players = JSON.parse(JSON.stringify(this.defaultPlayers));
+        this.runners = []; this.lines = []; this.ball = { x: 600, y: 760 };
+        this.render();
+      }
+    },
+    zoomDelta(d) {
+      this.zoomScale = Math.min(Math.max(this.zoomScale + d, 0.6), 2.5);
+      this.applyTransform();
+    },
+    resetZoom() { this.zoomScale = 1.0; this.panX = 0; this.panY = 0; this.applyTransform(); },
+    applyTransform() {
+      document.getElementById('viewport').setAttribute('transform', `translate(${this.panX}, ${this.panY}) scale(${this.zoomScale})`);
+      document.getElementById('zoom-disp').innerText = `${Math.round(this.zoomScale * 100)}%`;
+    },
 
-  function stepBSO(type) {
-    saveState();
-    if (type === 'b') gameScore.b = (gameScore.b + 1) % 4;
-    if (type === 's') gameScore.s = (gameScore.s + 1) % 3;
-    if (type === 'o') gameScore.o = (gameScore.o + 1) % 3;
-    updateScoreboardUI();
-  }
+    /* タイムライン再生アニメーション */
+    playAnimation() {
+      const paths = document.querySelectorAll('#linesLayer path');
+      paths.forEach(p => {
+        const len = p.getTotalLength();
+        p.style.strokeDasharray = len;
+        p.style.strokeDashoffset = len;
+        p.getBoundingClientRect();
+        p.style.transition = 'stroke-dashoffset 2s ease-in-out';
+        p.style.strokeDashoffset = '0';
+      });
+    },
 
-  // --- UI・ツール切替 ---
-  function setTool(t) {
-    currentTool = t;
-    document.querySelectorAll('.header-group .btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`tool-${t}`)?.classList.add('active');
-  }
+    setupEvents() {
+      const svg = document.getElementById('svgField');
+      let isDragging = false, dragTarget = null, currentLine = null;
 
-  function setLineType(t) {
-    currentLineType = t;
-    document.querySelectorAll('.field-bottom-bar .btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`line-type-${t}`)?.classList.add('active');
-  }
+      const getPoint = (e) => {
+        const rect = svg.getBoundingClientRect();
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+        return {
+          x: (((clientX - rect.left) / rect.width) * 1200 - this.panX) / this.zoomScale,
+          y: (((clientY - rect.top) / rect.height) * 1300 - this.panY) / this.zoomScale
+        };
+      };
 
-  function setColor(c, el) {
-    currentColor = c;
-    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
-    el.classList.add('selected');
-  }
+      svg.addEventListener('pointerdown', (e) => {
+        const pt = getPoint(e);
+        if (e.pointerType === 'pen' || this.tool === 'pen' || this.tool === 'laser') {
+          AppUndoManager.pushState();
+          isDragging = true;
+          currentLine = { type: this.lineType, color: this.tool === 'laser' ? '#ff0033' : this.color, points: [pt] };
+          this.lines.push(currentLine);
+        }
+      });
 
-  function setStrokeWidth(w) { strokeWidth = parseInt(w); }
+      svg.addEventListener('pointermove', (e) => {
+        const pt = getPoint(e);
+        if (isDragging && currentLine) {
+          currentLine.points.push(pt);
+          this.renderLines();
+        } else if (dragTarget) {
+          if (dragTarget === 'ball') { this.ball = pt; }
+          else {
+            const p = [...this.players, ...this.runners].find(x => x.id === dragTarget);
+            if (p) { p.x = pt.x; p.y = pt.y; }
+          }
+          this.renderObjects();
+        }
+      });
 
-  function toggleLabelMode() {
-    labelMode = labelMode === 'label' ? 'num' : labelMode === 'num' ? 'name' : 'label';
-    document.getElementById('btn-toggle-label').innerText = labelMode === 'label' ? '🔢 ポジション' : labelMode === 'num' ? '🔢 背番号' : '🔢 選手名';
-    renderObjects();
-  }
+      window.addEventListener('pointerup', () => { isDragging = false; dragTarget = null; currentLine = null; });
+      this.startDragObj = (id) => { AppUndoManager.pushState(); dragTarget = id; };
+    },
 
-  function toggleBottomSheet() {
-    document.getElementById('bottomSheet').classList.toggle('open');
-    if (document.getElementById('bottomSheet').classList.contains('open')) filterLibrary();
-  }
+    render() { this.renderObjects(); this.renderLines(); },
+    renderObjects() {
+      const layer = document.getElementById('objectsLayer');
+      layer.innerHTML = '';
 
+      const ballG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      ballG.innerHTML = `<circle cx="${this.ball.x}" cy="${this.ball.y}" r="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" style="cursor:grab;"/>`;
+      ballG.onpointerdown = (e) => { e.stopPropagation(); this.startDragObj('ball'); };
+      layer.appendChild(ballG);
+
+      [...this.players, ...this.runners].forEach(p => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        let text = p.label;
+        if (this.labelMode === 'num') text = p.num || p.label;
+        if (this.labelMode === 'name') text = p.name || p.label;
+
+        g.innerHTML = `
+          <circle cx="${p.x}" cy="${p.y}" r="30" fill="${p.color}" stroke="#ffffff" stroke-width="3" style="cursor:grab;"/>
+          <text x="${p.x}" y="${p.y + 6}" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="bold" style="pointer-events:none;">${text}</text>
+        `;
+        g.onpointerdown = (e) => { e.stopPropagation(); this.startDragObj(p.id); };
+        layer.appendChild(g);
+      });
+    },
+    renderLines() {
+      const layer = document.getElementById('linesLayer');
+      layer.innerHTML = '';
+      this.lines.forEach(l => {
+        if (l.points.length < 2) return;
+        const d = l.points.reduce((acc, p, i) => `${acc} ${i===0?'M':'L'} ${p.x} ${p.y}`, '');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('stroke', l.color);
+        path.setAttribute('stroke-width', l.type === 'hit' ? '9' : '6');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke-linecap', 'round');
+
+        if (l.type === 'run') path.setAttribute('stroke-dasharray', '12,6');
+        if (l.type === 'field') path.setAttribute('stroke-dasharray', '4,5');
+        if (l.type) path.setAttribute('marker-end', `url(#arrow-${l.type})`);
+        layer.appendChild(path);
+      });
+    }
+  };
+
+  /* === 5. スタメン＆Drag & Drop打順モジュール (LineupModule) === */
+  const LineupModule = {
+    roster: [
+      { num: '1', name: '投手太郎', throws: '右投右打', grade: '3年' },
+      { num: '2', name: '捕手次郎', throws: '右投右打', grade: '3年' },
+      { num: '3', name: '一塁三郎', throws: '右投左打', grade: '2年' },
+      { num: '4', name: '二塁四郎', throws: '右投右打', grade: '2年' },
+      { num: '5', name: '三塁五郎', throws: '右投右打', grade: '3年' },
+      { num: '6', name: '遊撃六郎', throws: '右投左打', grade: '1年' },
+      { num: '7', name: '左外七郎', throws: '左投左打', grade: '2年' },
+      { num: '8', name: '中外八郎', throws: '右投両打', grade: '3年' },
+      { num: '9', name: '右外九郎', throws: '右投右打', grade: '1年' }
+    ],
+    lineup: [
+      { order: 1, pos: '中', playerNum: '8', memo: '' },
+      { order: 2, pos: '二', playerNum: '4', memo: '' },
+      { order: 3, pos: '遊', playerNum: '6', memo: '' },
+      { order: 4, pos: '三', playerNum: '5', memo: '' },
+      { order: 5, pos: '一', playerNum: '3', memo: '' },
+      { order: 6, pos: '左', playerNum: '7', memo: '' },
+      { order: 7, pos: '右', playerNum: '9', memo: '' },
+      { order: 8, pos: '捕', playerNum: '2', memo: '' },
+      { order: 9, pos: '投', playerNum: '1', memo: '' }
+    ],
+
+    init() { this.renderRoster(); this.renderLineup(); },
+    renderRoster() {
+      const tbody = document.getElementById('roster-table-body');
+      tbody.innerHTML = '';
+      const kw = (document.getElementById('roster-search')?.value || '').toLowerCase();
+
+      this.roster.filter(p => p.num.includes(kw) || p.name.toLowerCase().includes(kw) || p.grade.includes(kw)).forEach((p, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>#${p.num}</td><td>${p.name}</td><td>${p.throws}</td><td>${p.grade}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="LineupModule.deleteRoster(${i})">削除</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      this.renderLineup();
+    },
+    addRosterPlayer() {
+      AppUndoManager.pushState();
+      const num = document.getElementById('new-p-num').value.trim();
+      const name = document.getElementById('new-p-name').value.trim();
+      if (!num || !name) return alert('背番号と名前を入力してください');
+      this.roster.push({ num, name, throws: document.getElementById('new-p-throws').value, grade: document.getElementById('new-p-grade').value });
+      document.getElementById('new-p-num').value = ''; document.getElementById('new-p-name').value = '';
+      this.renderRoster();
+    },
+    deleteRoster(i) {
+      if (confirm('この選手を削除しますか？')) { AppUndoManager.pushState(); this.roster.splice(i, 1); this.renderRoster(); }
+    },
+    renderLineup() {
+      const tbody = document.getElementById('lineup-table-body');
+      tbody.innerHTML = '';
+      const positions = ['投', '捕', '一', '二', '三', '遊', '左', '中', '右', 'DH'];
+
+      let dragIndex = null;
+      this.lineup.forEach((item, idx) => {
+        item.order = idx + 1;
+        const pObj = this.roster.find(r => r.num === item.playerNum) || {};
+        const tr = document.createElement('tr');
+        tr.className = 'draggable-row';
+        tr.draggable = true;
+
+        tr.ondragstart = () => { dragIndex = idx; tr.classList.add('dragging'); };
+        tr.ondragover = (e) => e.preventDefault();
+        tr.ondrop = () => {
+          AppUndoManager.pushState();
+          const dragged = this.lineup.splice(dragIndex, 1)[0];
+          this.lineup.splice(idx, 0, dragged);
+          this.renderLineup();
+        };
+
+        const posOpts = positions.map(p => `<option value="${p}" ${item.pos === p ? 'selected':''}>${p}</option>`).join('');
+        const playerOpts = this.roster.map(p => `<option value="${p.num}" ${item.playerNum === p.num ? 'selected':''}>#${p.num} ${p.name}</option>`).join('');
+
+        tr.innerHTML = `
+          <td>☰</td>
+          <td><b>${item.order}</b></td>
+          <td><select onchange="LineupModule.lineup[${idx}].pos=this.value">${posOpts}</select></td>
+          <td><select onchange="LineupModule.lineup[${idx}].playerNum=this.value; LineupModule.renderLineup();">${playerOpts}</select></td>
+          <td>${pObj.throws || '-'}</td><td>${pObj.grade || '-'}</td>
+          <td><input type="text" value="${item.memo}" oninput="LineupModule.lineup[${idx}].memo=this.value" style="width:100%;"></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    },
+    applyToBoard() {
+      AppUndoManager.pushState();
+      this.lineup.forEach(item => {
+        const pObj = this.roster.find(r => r.num === item.playerNum);
+        const fieldP = BoardModule.players.find(p => p.label === item.pos || p.id === item.pos);
+        if (fieldP && pObj) { fieldP.num = pObj.num; fieldP.name = pObj.name; }
+      });
+      BoardModule.render();
+      alert('スタメン情報を盤面に反映しました');
+    }
+  };
+
+  /* === 6. ライブラリ機能 (LibraryModule) === */
+  const LibraryModule = {
+    savePlay() {
+      const title = document.getElementById('save-title').value || '無題の作戦';
+      const memo = document.getElementById('save-memo').value;
+      const svg = document.getElementById('svgField');
+      const svgData = new XMLSerializer().serializeToString(svg);
+
+      const img = new Image();
+      img.onload = () => {
+        const cvs = document.createElement('canvas');
+        cvs.width = 400; cvs.height = 433;
+        const ctx = cvs.getContext('2d');
+        ctx.drawImage(img, 0, 0, 400, 433);
+        const thumb = cvs.toDataURL('image/jpeg', 0.6);
+
+        const saves = JSON.parse(localStorage.getItem('baseball_plays_v3') || '[]');
+        saves.push({ id: Date.now(), title, memo, thumb, date: new Date().toLocaleDateString(), players: BoardModule.players, runners: BoardModule.runners, ball: BoardModule.ball, lines: BoardModule.lines });
+        localStorage.setItem('baseball_plays_v3', JSON.stringify(saves));
+
+        document.getElementById('save-title').value = ''; document.getElementById('save-memo').value = '';
+        this.filter();
+        alert('ライブラリへ保存完了');
+      };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+    },
+    filter() {
+      const saves = JSON.parse(localStorage.getItem('baseball_plays_v3') || '[]');
+      const kw = document.getElementById('search-library').value.toLowerCase();
+      const list = document.getElementById('saved-list');
+      list.innerHTML = '';
+
+      saves.filter(s => s.title.toLowerCase().includes(kw)).forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'play-card';
+        card.innerHTML = `
+          <img src="${s.thumb}" alt="thumb">
+          <div class="play-card-body">
+            <div class="play-card-title">${s.title}</div>
+            <div style="font-size:10px; color:#94a3b8;">${s.date}</div>
+            <div class="play-card-actions">
+              <button class="btn btn-sm" onclick="LibraryModule.loadPlay(${s.id})">開く</button>
+              <button class="btn btn-sm" onclick="LibraryModule.duplicatePlay(${s.id})">複製</button>
+              <button class="btn btn-danger btn-sm" onclick="LibraryModule.deletePlay(${s.id})">削除</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    },
+    loadPlay(id) {
+      const saves = JSON.parse(localStorage.getItem('baseball_plays_v3') || '[]');
+      const item = saves.find(s => s.id === id);
+      if (item) {
+        AppUndoManager.pushState();
+        BoardModule.players = item.players; BoardModule.runners = item.runners || [];
+        BoardModule.ball = item.ball; BoardModule.lines = item.lines || [];
+        BoardModule.render();
+        toggleBottomSheet();
+      }
+    },
+    duplicatePlay(id) {
+      const saves = JSON.parse(localStorage.getItem('baseball_plays_v3') || '[]');
+      const item = saves.find(s => s.id === id);
+      if (item) {
+        saves.push({ ...item, id: Date.now(), title: item.title + ' (コピー)' });
+        localStorage.setItem('baseball_plays_v3', JSON.stringify(saves));
+        this.filter();
+      }
+    },
+    deletePlay(id) {
+      if (confirm('この作戦を削除しますか？')) {
+        let saves = JSON.parse(localStorage.getItem('baseball_plays_v3') || '[]');
+        saves = saves.filter(s => s.id !== id);
+        localStorage.setItem('baseball_plays_v3', JSON.stringify(saves));
+        this.filter();
+      }
+    }
+  };
+
+  /* === 7. データ管理＆QR＆PDFエクスポート (DataModule) === */
+  const DataModule = {
+    exportJSON() {
+      const data = {
+        score: ScoreModule.state, roster: LineupModule.roster, lineup: LineupModule.lineup,
+        board: { players: BoardModule.players, runners: BoardModule.runners, ball: BoardModule.ball, lines: BoardModule.lines }
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `baseball_strategy_${Date.now()}.json`; a.click();
+    },
+    importJSON(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const data = JSON.parse(evt.target.result);
+          if (confirm('データを復元しますか？')) {
+            AppUndoManager.pushState();
+            if (data.roster) LineupModule.roster = data.roster;
+            if (data.lineup) LineupModule.lineup = data.lineup;
+            if (data.board) { BoardModule.players = data.board.players; BoardModule.runners = data.board.runners; BoardModule.ball = data.board.ball; BoardModule.lines = data.board.lines; }
+            LineupModule.renderRoster(); BoardModule.render();
+            alert('データを正常に読み込みました');
+          }
+        } catch(err) { alert('不正なJSON形式です'); }
+      };
+      reader.readAsText(file);
+    },
+    showQRCode() {
+      const stateStr = encodeURIComponent(JSON.stringify({ board: BoardModule.players, score: ScoreModule.state }));
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${stateStr}`;
+      document.getElementById('qrImage').src = qrUrl;
+      document.getElementById('qrModal').style.display = 'flex';
+    },
+    exportDirectorPDF() {
+      document.getElementById('pdf-date').innerText = `作成日時: ${new Date().toLocaleString()}`;
+      document.getElementById('pdf-memo-box').innerText = document.getElementById('save-memo').value || '指示事項なし';
+
+      const tbody = document.getElementById('pdf-lineup-tbody');
+      tbody.innerHTML = '';
+      LineupModule.lineup.forEach(item => {
+        const pObj = LineupModule.roster.find(r => r.num === item.playerNum) || {};
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${item.order}</td><td>${item.pos}</td><td>#${item.playerNum}</td><td>${pObj.name||''}</td><td>${pObj.throws||''}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      const svg = document.getElementById('svgField');
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const img = new Image();
+      img.onload = () => {
+        const cvs = document.createElement('canvas'); cvs.width = 600; cvs.height = 650;
+        cvs.getContext('2d').drawImage(img, 0, 0, 600, 650);
+        document.getElementById('pdf-board-img').src = cvs.toDataURL('image/png');
+        window.print();
+      };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+    }
+  };
+
+  /* UI制御 */
   function switchPage(pageId, btn) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('nav .nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(pageId).classList.add('active');
     btn.classList.add('active');
   }
 
-  function addRunner() {
-    if (runners.length >= 3) return;
-    saveState();
-    const idx = runners.length + 1;
-    const pos = idx === 1 ? { x: 860, y: 730 } : idx === 2 ? { x: 600, y: 420 } : { x: 340, y: 730 };
-    runners.push({ id: `R${idx}`, label: `走${idx}`, num: `R${idx}`, name: `走者${idx}`, x: pos.x, y: pos.y, color: '#eab308' });
-    renderObjects();
+  function switchHeaderPanel(panelId, btn) {
+    document.querySelectorAll('.header-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.header-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+    btn.classList.add('active');
   }
 
-  function removeRunner() { saveState(); runners.pop(); renderObjects(); }
-
-  function resetBoard() {
-    if (!confirm('作戦ボードを初期リセットしますか？')) return;
-    saveState();
-    players = JSON.parse(JSON.stringify(defaultPlayers));
-    runners = [];
-    ball = { x: 600, y: 760 };
-    lines = [];
-    renderObjects();
-    renderLines();
+  function toggleBottomSheet() {
+    document.getElementById('bottomSheet').classList.toggle('open');
+    if (document.getElementById('bottomSheet').classList.contains('open')) LibraryModule.filter();
   }
 
-  // --- 作戦ライブラリ & Bottom Sheet 機能 ---
-  function savePlay() {
-    const title = document.getElementById('save-title').value || '無題の戦術';
-    const category = document.getElementById('save-category').value;
-    const tags = document.getElementById('save-tags').value;
-    const memo = document.getElementById('save-memo').value;
-
-    // サムネイル用DataURL生成
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const img = new Image();
-    img.onload = () => {
-      recCtx.clearRect(0,0,1200,1300);
-      recCtx.drawImage(img, 0, 0);
-      const thumb = recCanvas.toDataURL('image/jpeg', 0.5);
-
-      const saves = JSON.parse(localStorage.getItem('baseball_saved_plays') || '[]');
-      saves.push({ id: Date.now(), title, category, tags, memo, thumb, date: new Date().toLocaleDateString(), fav: false, players, runners, ball, lines });
-      localStorage.setItem('baseball_saved_plays', JSON.stringify(saves));
-
-      document.getElementById('save-title').value = '';
-      document.getElementById('save-memo').value = '';
-      filterLibrary();
-      alert('ライブラリに作戦を保存しました！');
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
-  }
-
-  function filterLibrary() {
-    const saves = JSON.parse(localStorage.getItem('baseball_saved_plays') || '[]');
-    const kw = document.getElementById('search-library').value.toLowerCase();
-    const container = document.getElementById('saved-list');
-    container.innerHTML = '';
-
-    saves.filter(s => s.title.toLowerCase().includes(kw) || s.category.includes(kw)).forEach(s => {
-      const card = document.createElement('div');
-      card.className = 'play-card';
-      card.innerHTML = `
-        <div class="play-card-fav" onclick="toggleFav(${s.id}, event)">${s.fav ? '★' : '☆'}</div>
-        <img src="${s.thumb || ''}" alt="thumb">
-        <div class="play-card-body">
-          <div class="play-card-title">${s.title}</div>
-          <div class="play-card-meta"><span>${s.category}</span><span>${s.date}</span></div>
-        </div>
-      `;
-      card.onclick = () => {
-        saveState();
-        players = s.players; runners = s.runners || []; ball = s.ball; lines = s.lines || [];
-        renderObjects(); renderLines();
-        toggleBottomSheet();
-      };
-      container.appendChild(card);
-    });
-  }
-
-  function toggleFav(id, e) {
-    e.stopPropagation();
-    const saves = JSON.parse(localStorage.getItem('baseball_saved_plays') || '[]');
-    const target = saves.find(s => s.id === id);
-    if (target) { target.fav = !target.fav; localStorage.setItem('baseball_saved_plays', JSON.stringify(saves)); filterLibrary(); }
-  }
-
-  function sharePlay() {
-    if (navigator.share) {
-      navigator.share({ title: '野球作戦ボード', text: '作戦ボードの戦術を共有します。' });
-    } else {
-      alert('お使いのブラウザはWeb Share APIに対応していません。');
-    }
-  }
-
-  function exportPNG() {
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement('canvas');
-    canvas.width = 1200; canvas.height = 1300;
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0);
-      const a = document.createElement('a');
-      a.download = `baseball-strategy-${Date.now()}.png`;
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-    };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
-  }
-
-  // --- 画面録画 ---
-  function toggleRecord() {
-    const btn = document.getElementById('btn-record');
-    if (!isRecording) {
-      try {
-        recordedChunks = [];
-        const stream = recCanvas.captureStream(30);
-        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(recordedChunks, { type: 'video/webm' });
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = `baseball-record-${Date.now()}.webm`;
-          a.click();
-        };
-        mediaRecorder.start();
-        isRecording = true;
-        btn.innerText = '⏹️ 停止';
-        btn.classList.add('btn-recording');
-      } catch(err) { alert('録画未対応の環境です: ' + err); }
-    } else {
-      isRecording = false;
-      if (mediaRecorder) mediaRecorder.stop();
-      btn.innerText = '🎥 録画';
-      btn.classList.remove('btn-recording');
-    }
-  }
-
-  // --- スタメン & 選手管理ロジック ---
-  let isDhMode = false;
-  let roster = [
-    { num: '1', name: '投手太郎', throws: '右投右打', grade: '3年' },
-    { num: '2', name: '捕手次郎', throws: '右投右打', grade: '3年' },
-    { num: '3', name: '一塁三郎', throws: '右投左打', grade: '2年' },
-    { num: '4', name: '二塁四郎', throws: '右投右打', grade: '2年' },
-    { num: '5', name: '三塁五郎', throws: '右投右打', grade: '3年' },
-    { num: '6', name: '遊撃六郎', throws: '右投左打', grade: '1年' },
-    { num: '7', name: '左外七郎', throws: '左投左打', grade: '2年' },
-    { num: '8', name: '中外八郎', throws: '右投両打', grade: '3年' },
-    { num: '9', name: '右外九郎', throws: '右投右打', grade: '1年' }
-  ];
-
-  let lineup = [
-    { order: 1, pos: '中', playerNum: '8', memo: '' },
-    { order: 2, pos: '二', playerNum: '4', memo: '' },
-    { order: 3, pos: '遊', playerNum: '6', memo: '' },
-    { order: 4, pos: '三', playerNum: '5', memo: '' },
-    { order: 5, pos: '一', playerNum: '3', memo: '' },
-    { order: 6, pos: '左', playerNum: '7', memo: '' },
-    { order: 7, pos: '右', playerNum: '9', memo: '' },
-    { order: 8, pos: '捕', playerNum: '2', memo: '' },
-    { order: 9, pos: '投', playerNum: '1', memo: '' }
-  ];
-
-  let relayPitchers = [];
-
-  function toggleDhMode() {
-    isDhMode = document.getElementById('dh-checkbox').checked;
-    document.getElementById('dh-pitcher-container').style.display = isDhMode ? 'block' : 'none';
-    renderLineupTable();
-  }
-
-  function renderLineupTable() {
-    const tbody = document.getElementById('lineup-table-body');
-    tbody.innerHTML = '';
-    const positions = ['投', '捕', '一', '二', '三', '遊', '左', '中', '右', 'DH'];
-
-    lineup.forEach((item, index) => {
-      const pObj = roster.find(r => r.num === item.playerNum) || {};
-      const tr = document.createElement('tr');
-      const posOptions = positions.map(p => `<option value="${p}" ${item.pos === p ? 'selected' : ''}>${p}</option>`).join('');
-      const playerOptions = roster.map(p => `<option value="${p.num}" ${item.playerNum === p.num ? 'selected' : ''}>#${p.num} ${p.name}</option>`).join('');
-
-      tr.innerHTML = `
-        <td>${item.order}</td>
-        <td><select onchange="lineup[${index}].pos=this.value">${posOptions}</select></td>
-        <td><select onchange="lineup[${index}].playerNum=this.value; renderLineupTable();">${playerOptions}</select></td>
-        <td>${pObj.throws || '-'}</td>
-        <td>${pObj.grade || '-'}</td>
-        <td><input type="text" value="${item.memo}" oninput="lineup[${index}].memo=this.value" style="width:100%;"></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function applyLineupToBoard() {
-    saveState();
-    lineup.forEach(item => {
-      const pObj = roster.find(r => r.num === item.playerNum);
-      const fieldP = players.find(p => p.label === item.pos || p.id === item.pos);
-      if (fieldP && pObj) { fieldP.num = pObj.num; fieldP.name = pObj.name; }
-    });
-    renderObjects();
-    alert('スタメン情報をボードに反映しました！');
-  }
-
-  function renderRosterTable() {
-    const tbody = document.getElementById('roster-table-body');
-    tbody.innerHTML = '';
-    roster.forEach((p, idx) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>#${p.num}</td>
-        <td>${p.name}</td>
-        <td>${p.throws}</td>
-        <td>${p.grade}</td>
-        <td><button class="btn btn-danger" onclick="roster.splice(${idx},1); renderRosterTable();">削除</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-    renderLineupTable();
-  }
-
-  function addRosterPlayer() {
-    const num = document.getElementById('new-p-num').value.trim();
-    const name = document.getElementById('new-p-name').value.trim();
-    const throws = document.getElementById('new-p-throws').value;
-    const grade = document.getElementById('new-p-grade').value;
-
-    if (!num || !name) return alert('背番号と名前を入力してください');
-    roster.push({ num, name, throws, grade });
-    document.getElementById('new-p-num').value = '';
-    document.getElementById('new-p-name').value = '';
-    renderRosterTable();
-  }
-
-  function addRelayPitcher() {
-    const num = document.getElementById('relay-pitcher-select')?.value;
-    const role = document.getElementById('relay-pitcher-role').value || '中継ぎ';
-    const pObj = roster.find(r => r.num === num);
-    if (pObj) {
-      relayPitchers.push({ role, num: pObj.num, name: pObj.name });
-      renderRelayTable();
-    }
-  }
-
-  function renderRelayTable() {
-    const tbody = document.getElementById('relay-table-body');
-    tbody.innerHTML = '';
-    relayPitchers.forEach((rp, idx) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${rp.role}</td>
-        <td>#${rp.num}</td>
-        <td>${rp.name}</td>
-        <td><button class="btn btn-danger" onclick="relayPitchers.splice(${idx},1); renderRelayTable();">削除</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function exportPDF() {
-    const pdfOrderTbody = document.getElementById('pdf-order-tbody');
-    pdfOrderTbody.innerHTML = '';
-    lineup.forEach(item => {
-      const pObj = roster.find(r => r.num === item.playerNum) || {};
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${item.order}</td><td>${item.pos}</td><td>${item.playerNum}</td><td>${pObj.name||''}</td><td>${pObj.throws||''}</td><td>${item.memo}</td>`;
-      pdfOrderTbody.appendChild(tr);
-    });
-    window.print();
-  }
+  window.addEventListener('DOMContentLoaded', () => {
+    ScoreModule.updateUI();
+    BoardModule.init();
+    LineupModule.init();
+  });
 </script>
 </body>
 </html>
